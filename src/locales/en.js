@@ -2,8 +2,8 @@ import enLocale from 'element-ui/lib/locale/lang/en'
 
 const en = {
   "nav": {
-    "selectItem": "Navigation I",
-    "issueToken": "Navigation II",
+    "selectItem": "Trading center",
+    "issueToken": "Blockchain browser",
     "login": "Login",
     "user": "User",
     "backup": "Backup",

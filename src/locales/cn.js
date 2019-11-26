@@ -2,8 +2,8 @@ import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 
 const cn = {
   "nav": {
-    "selectItem": "导航一",
-    "issueToken": "导航二",
+    "selectItem": "交易中心",
+    "issueToken": "区块链浏览器",
     "login": "登录",
     "user": "用户中心",
     "backup": "备份账户",

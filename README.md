@@ -1,4 +1,4 @@
-# dex
+# Chain-Factory
 
 ## Project setup
 ```
