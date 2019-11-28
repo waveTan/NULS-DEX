@@ -158,7 +158,7 @@ u {
 }
 
 .w1200 {
-  width: 1200px;
+  width: 1400px;
   margin: 0 auto;
   @media screen and (max-width: 1200px) {
     width: 1024px;
@@ -202,7 +202,7 @@ u {
 }
 
 .gray {
-  color: #A4AEC4;
+  color: #7d7f93;
 }
 
 .transparent {
@@ -214,7 +214,7 @@ u {
 }
 
 .bg-gray {
-  background-color: @Bcolour1;
+  background-color: @Bcolour2;
 }
 
 /**可点击的手指样式**/
@@ -306,6 +306,81 @@ u {
   display: none;
   @media screen and (max-width: 1000px) {
     display: block;
+  }
+}
+
+.scroll {
+  &::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+    border-radius: 5px;
+  }
+
+  &::-webkit-scrollbar {
+    width: 5px;
+    background-color: #dfe4ed;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    background-image: -webkit-gradient(linear, 20% 0%, 20% 0%, from(#d1dbe5), to(#d1dbe5), color-stop(.2, #ffffff))
+  }
+}
+
+.table {
+  .el-table {
+    background-color: #141627 !important;
+    th, td {
+      padding: 0 !important;
+      border: 0;
+      .cell {
+        padding: 0 !important;
+      }
+    }
+    tr {
+      background-color: #141627 !important;
+    }
+    .el-table__row--striped {
+      td {
+        background-color: #1c1e31 !important;
+      }
+    }
+    .el-table__header-wrapper {
+      .el-table__header {
+        tr {
+          th {
+            background-color: @Hcolour !important;
+          }
+        }
+      }
+    }
+    .el-table__body-wrapper {
+      background-color: #5e6983 !important;
+      .el-table__body {
+      }
+
+      &::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1);
+        background-color: #141627;
+        border-radius: 5px;
+      }
+
+      &::-webkit-scrollbar {
+        width: 5px;
+        background-color: #141627;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        border-radius: 5px;
+        background-image: -webkit-gradient(linear, 20% 0%, 20% 0%, from(#d1dbe5), to(#d1dbe5), color-stop(.2, #141627))
+      }
+    }
+    &:before{
+      background-color: transparent !important;
+    }
+  }
+  .el-table__expanded-cell {
+    background-color: #141627 !important;
   }
 }
 

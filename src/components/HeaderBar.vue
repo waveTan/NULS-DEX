@@ -1,11 +1,11 @@
 <template>
-  <div class="header bg-white">
+  <div class="header bg-gray">
     <div class="w1200">
       <div class="logo fl">
         <img class="clicks" @click="toUrl('home')" :src="logoSvg"/>
       </div>
       <div class="nav fl">
-        <el-menu :default-active="activeIndex" class="fl" mode="horizontal" @select="handleSelect">
+        <el-menu :default-active="activeIndex" class="fl bg-gray" mode="horizontal" @select="handleSelect">
           <el-menu-item index="page1">{{$t('nav.selectItem')}}</el-menu-item>
           <el-menu-item index="page2">{{$t('nav.issueToken')}}</el-menu-item>
         </el-menu>
@@ -15,7 +15,7 @@
           </div>
           <div class="fr">
             <div class="user_info fl" v-if="accountAddress">
-              <el-menu mode="horizontal" @select="handleSelect" class="user_menu">
+              <el-menu mode="horizontal" @select="handleSelect" class="user_menu bg-gray">
                 <el-submenu index="user">
                   <template slot="title"><i class="el-icon-s-custom click "></i>&nbsp;
                   </template>
@@ -195,16 +195,15 @@
   @import "./../assets/css/style";
 
   .header {
-    border-bottom: 1px solid #bebebe;
-    height: 100px;
-    line-height: 100px;
+    height: 60px;
+    line-height: 60px;
     @media screen and (max-width: 1024px) {
       height: 60px;
       line-height: 60px;
     }
     .logo {
       width: 104px;
-      margin: 18px 0 0 0;
+      margin: 10px 0 0 0;
       height: 42px;
       @media screen and (max-width: 1024px) {
         margin: 10px 0 0 5px;
@@ -218,8 +217,8 @@
       }
     }
     .nav {
-      width: 1095px;
-      height: 98px;
+      width: 1296px;
+      height: 60px;
       @media screen and (max-width: 1200px) {
         width: 920px;
       }
@@ -229,17 +228,17 @@
       .el-menu.el-menu--horizontal {
         border-bottom: 0;
         width: 850px;
-        height: 99px;
+        height: 59px;
         @media screen and (max-width: 1200px) {
           width: 680px;
         }
         .el-menu-item {
-          height: 99px;
-          line-height: 100px;
+          height: 60px;
+          line-height: 60px;
           padding: 0;
           margin: 0 25px;
           font-size: 18px;
-          color: #333;
+          color: @Fcolour;
           &:hover {
             color: @Ncolour;
           }
@@ -261,6 +260,7 @@
           .user_menu {
             width: 28px;
             text-align: center;
+            height: 59px;
             .el-submenu {
               &:hover {
                 background-color: transparent;
@@ -268,7 +268,7 @@
               .el-submenu__title {
                 line-height: 20px;
                 height: 20px;
-                margin: 40px auto 0;
+                margin: 20px auto 0;
                 padding: 0;
                 width: 25px;
                 border: 0;
@@ -284,13 +284,13 @@
         }
         .language {
           width: 70px;
-          line-height: 99px;
+          line-height: 60px;
           margin-left: 20px;
         }
       }
       .landing {
         width: 30px;
-        line-height: 99px;
+        line-height: 60px;
         text-align: center;
         z-index: 99;
         position: relative;
