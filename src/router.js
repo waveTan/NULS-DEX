@@ -12,9 +12,9 @@ export default new Router({
       component: resolve => require(['@/views/Home.vue'], resolve)
     },
     {
-      path: '/page1',
-      name: 'page1',
-      component: resolve => require(['@/views/page1.vue'], resolve)
+      path: '/trading/index',
+      name: 'trading',
+      component: resolve => require(['@/views/trading/Index.vue'], resolve)
     },
     {
       path: '/page2',

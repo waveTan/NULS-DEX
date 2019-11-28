@@ -6,7 +6,7 @@
       </div>
       <div class="nav fl">
         <el-menu :default-active="activeIndex" class="fl bg-gray" mode="horizontal" @select="handleSelect">
-          <el-menu-item index="page1">{{$t('nav.selectItem')}}</el-menu-item>
+          <el-menu-item index="trading">{{$t('nav.selectItem')}}</el-menu-item>
           <el-menu-item index="page2">{{$t('nav.issueToken')}}</el-menu-item>
         </el-menu>
         <div class="user fr tc">
@@ -59,7 +59,8 @@
 
       </div>
     </div>
-    <Password ref="password" @passwordSubmit="passSubmit"></Password>
+    <Password ref="password" @passwordSubmit="passSubmit">
+    </Password>
     <div class="cb"></div>
   </div>
 </template>
@@ -110,8 +111,8 @@
        * @param key
        */
       handleSelect(key) {
-        if (key === 'page1') {
-          this.toUrl('page1')
+        if (key === 'trading') {
+          this.toUrl('trading')
         } else if (key === 'page2') {
           this.toUrl('page2')
         } else if (key === 'userInfo') {
