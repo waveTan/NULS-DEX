@@ -1,9 +1,15 @@
 <template>
-  <div class="account w1200">
-    <div class="address">
-      <span class="font16">{{$t('public.address')}}: {{accountInfo.address}}</span>
-      <font class="fr font16">{{$t('public.balance')}}: {{accountInfo.balance}}<em class="fCN"> NULS</em></font>
-    </div>
+  <div class="account">
+    <el-tabs v-model="userTab" @tab-click="userTabsClick" class="user_tabs">
+      <el-tab-pane label="资产" name="assets">
+        <AssetsBar>
+        </AssetsBar>
+      </el-tab-pane>
+      <el-tab-pane label="订单" name="order">
+        <OrderBar>
+        </OrderBar>
+      </el-tab-pane>
+    </el-tabs>
     <Password ref="password" @passwordSubmit="passSubmit">
     </Password>
   </div>
@@ -11,6 +17,8 @@
 
 <script>
   import Password from '@/components/PasswordBar'
+  import AssetsBar from '@/views/user/AssetsBar'
+  import OrderBar from '@/views/user/OrderBar'
   import {divisionDecimals, connect} from '@/api/util'
   import {getAddressInfoByAddress} from '@/api/requestData'
 
@@ -18,6 +26,8 @@
     data() {
       return {
         accountInfo: JSON.parse(localStorage.getItem('accountInfo')),//账户信息
+        userTab: 'assets',
+        activeName: 'second',
       }
     },
     created() {
@@ -33,6 +43,8 @@
     },
     components: {
       Password,
+      AssetsBar,
+      OrderBar
     },
     methods: {
 
@@ -53,6 +65,14 @@
         } else {
           this.accountInfo.balance = 0
         }
+      },
+
+      userTabsClick(tab, event) {
+        console.log(tab, event);
+      },
+
+      handleClick(tab, event) {
+        console.log(tab, event);
       },
 
       /**
@@ -77,7 +97,31 @@
   @import "./../../assets/css/style";
 
   .account {
-    margin: 30px auto 0;
+    margin: 0 auto;
+    .user_tabs {
+      .el-tabs__header {
+        margin: 0;
+        .el-tabs__nav-wrap {
+          height: 60px;
+          line-height: 50px;
+          &:after{
+            background: linear-gradient(bottom, #ffffff, #E4E7ED);
+            height: 10px;
+          }
+          .el-tabs__nav-scroll {
+            width: 1400px;
+            margin: 0 auto;
+            .el-tabs__active-bar {
+              background-color: transparent;
+            }
+            .el-tabs__item {
+              font-size: 18px;
+            }
+          }
+        }
+      }
+    }
+
     .address {
       span {
         color: #17202e;

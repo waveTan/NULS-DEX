@@ -1,6 +1,6 @@
 <template>
   <div class="trading">
-    <div class="w1200">
+    <div class="w1400">
 
       <!-- top start -->
       <div class="top">

@@ -1,6 +1,6 @@
 <template>
   <div class="bottom bg-gray">
-    <div class="w1200">
+    <div class="w1400">
       <ul class="font14">
         <li class="fl">官网</li>
         <li class="fl">Github</li>
@@ -41,6 +41,8 @@
     height: 60px;
     bottom: 0;
     width: 100%;
+    position: fixed;
+    bottom: 0;
     .w1200 {
       height: 100%;
       line-height: 60px;
