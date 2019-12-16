@@ -3,10 +3,13 @@
     <!-- top_left_top start -->
     <div class="l_top">
 
-      <div class="title sub_info">
-        <span class="fwhite is_checked">自选</span>
-        <span class="fwhite">NULS</span>
-        <span class="fwhite">USDI</span>
+      <div class="title sub_info check_tab">
+        <span class="fwhite" :class="coinValue === -1 ? 'is_checked' : ''" @click="checkCoin(-1)" v-show="!accountInfo">
+          所有</span>
+        <span class="fwhite" :class="coinValue === 0 ? 'is_checked' : ''" @click="checkCoin(0)" v-show="accountInfo">
+          自选</span>
+        <span class="fwhite" :class="coinValue === 1 ? 'is_checked' : ''" @click="checkCoin(1)">NULS</span>
+        <span class="fwhite" :class="coinValue === 2 ? 'is_checked' : ''" @click="checkCoin(2)">USDI</span>
       </div>
 
       <div class="search cb">
@@ -21,24 +24,19 @@
       </div>
 
       <div class="table cb">
-        <el-table :data="counterpartyData" stripe style="width: 100%" height="180px" class="scroll">
-          <el-table-column label="" width="45" align="center">
-            <template slot-scope="scope">
-                  <span class="click">
-                    <i class="el-icon-star-off"></i>
-                  </span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="counterparty" align="center" label="交易对" width="95">
-          </el-table-column>
-          <el-table-column prop="price" align="center" label="价格" width="75">
-          </el-table-column>
-          <el-table-column align="center" label="涨跌" min-width="75">
-            <template slot-scope="scope">
-              <span>{{scope.row.limit}}%</span>
-            </template>
-          </el-table-column>
-        </el-table>
+        <div class="t_th">
+          <div class="t_td" style="width: 50px;text-align: center">&nbsp;</div>
+          <div class="t_td" style="width: 120px;">交易对</div>
+          <div class="t_td" style="width: 70px;">价格</div>
+          <div class="t_td" style="width: 60px;">涨跌</div>
+        </div>
+        <div class="t_tr cb" v-for="(item,index) in counterpartyData" :key="index">
+          <div class="t_td" style="width: 50px;text-align: center"><span class="click"><i class="el-icon-star-off"></i></span>
+          </div>
+          <div class="t_td" style="width: 120px;">{{item.tradingName}}</div>
+          <div class="t_td" style="width: 70px;">{{item.newPrice}}</div>
+          <div class="t_td" style="width: 60px;">{{item.yesterdayPrice}}%</div>
+        </div>
       </div>
 
     </div>
@@ -69,26 +67,18 @@
 </template>
 
 <script>
+  import axios from 'axios'
+
   export default {
     name: "left",
     data() {
       return {
+        accountInfo: '',//账户信息
+        coinValue: this.accountInfo ? 0 : -1,//交易对选择 -1:全部 0:自选1:nuls 2:usdi
         search: '',//搜索框内容
         radio: '1',//单选选择
         //交易对列表
-        counterpartyData: [
-          {counterparty: 'BTC/NULS', price: '1.2222', limit: "55.26"},
-          {counterparty: 'USDI/NULS', price: '1.2222', limit: "-5.26"},
-          {counterparty: 'OTN/NULS', price: '1.2222', limit: "-55.26"},
-          {counterparty: 'NIT/NULS', price: '1.2222', limit: "5.26"},
-          {counterparty: 'STESE/NULS', price: '1.2222', limit: "-0.26"},
-          {counterparty: 'ONDS/NULS', price: '1.2222', limit: "5.26"},
-          {counterparty: 'USDI/NULS', price: '1.2222', limit: "-55.26"},
-          {counterparty: 'OTN/NULS', price: '1.2222', limit: "55.26"},
-          {counterparty: 'NIT/NULS', price: '1.2222', limit: "-55.26"},
-          {counterparty: 'STESE/NULS', price: '1.2222', limit: "-55.26"},
-          {counterparty: 'ONDS/NULS', price: '1.2222', limit: "-55.26"},
-        ],
+        counterpartyData: [],
         //最新成交列表
         newestData: [
           {price: '1.225555', quantity: '56,6255.25', time: "11:52:56"},
@@ -113,27 +103,89 @@
         ],
       };
     },
-    created() {},
+    created() {
+      this.getCoinList(-1);
+    },
     components: {},
-    methods: {}
+    methods: {
+
+      /**
+       * @disc: 交易对类型选择
+       * @params: type 0:自选1:nuls 2:usdi
+       * @date: 2019-12-13 14:31
+       * @author: Wave
+       */
+      checkCoin(type) {
+        this.coinValue = type;
+      },
+
+      /**
+       * @disc: 获取交易对
+       * @params: type
+       * @date: 2019-12-13 15:44
+       * @author: Wave
+       */
+      async getCoinList(type) {
+        let url = '/coin/top/list';
+        let data = {};
+        if (type === -1) {
+          data = {
+            assetChainId: 0,
+            assetId: 0,
+            size: 10,
+            address: ""
+          };
+        } else if (type === 0) {
+          data = {
+            assetChainId: 0,
+            assetId: 0,
+            size: 0,
+            address: ""
+          };
+        } else if (type === 1) {
+          data = {
+            assetChainId: 1,
+            assetId: 1,
+            size: 0,
+            address: ""
+          };
+        } else if (type === 2) {
+          data = {};
+        }
+        let coinRes = await this.$post(url, data);
+        console.log(coinRes);
+        if (!coinRes.success) {
+          this.$message({message: '获取交易对错误:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});
+        }
+        let newArr = coinRes.result;
+        this.counterpartyData = [...newArr, ...coinRes.result]
+      }
+
+    }
   }
 </script>
 
 <style lang="less">
   @import "../../assets/css/style";
-  .left_bar{
+
+  .left_bar {
     .l_top {
       background-color: @Bcolour2;
       height: 260px;
-      .title {
+      .check_tab {
         height: 40px;
         line-height: 40px;
         padding: 0 0 0 15px;
         border-bottom: @BD1;
         span {
+          cursor: pointer;
+          color: #ced0de;
           margin: 0 5px;
           padding: 3px 7px;
           border-radius: 2px;
+          &:hover {
+            background-color: #149af2;
+          }
         }
         .is_checked {
           background-color: #149af2;
@@ -143,7 +195,7 @@
       .search {
         height: 40px;
         .fl {
-          width: 150px;
+          width: 110px;
           .el-input {
             margin: 10px 0 0 10px;
             .el-input__inner {
@@ -151,7 +203,8 @@
               height: 20px;
               border-radius: 0;
               background-color: #141627;
-              padding-left: 23px;
+              padding:0 0 0 20px;
+              border-color: #888db5;
             }
             .el-input__prefix {
               left: 1px;
@@ -163,10 +216,13 @@
           }
         }
         .fr {
+          margin: 0 30px 0 0;
           .el-radio {
             margin: 12px 10px 0 0;
             .el-radio__label {
               padding-left: 5px;
+              font-size: 12px;
+              color: #7d7f93;
             }
           }
         }

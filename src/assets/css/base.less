@@ -116,6 +116,7 @@ u {
 .font16 {
   font-size: 16px;
 }
+
 .font18 {
   font-size: 18px;
 }
@@ -311,19 +312,6 @@ u {
   margin-bottom: 100px
 }
 
-.pc {
-  @media screen and (max-width: 1000px) {
-    display: none;
-  }
-}
-
-.mobile {
-  display: none;
-  @media screen and (max-width: 1000px) {
-    display: block;
-  }
-}
-
 .scroll {
   &::-webkit-scrollbar-track {
     -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1);
@@ -343,59 +331,37 @@ u {
 }
 
 .table {
-  .el-table {
-    background-color: #141627 !important;
-    th, td {
-      padding: 0 !important;
-      border: 0;
-      .cell {
-        padding: 0 !important;
-      }
-    }
-    tr {
-      background-color: #141627 !important;
-    }
-    .el-table__row--striped {
-      td {
-        background-color: #1c1e31 !important;
-      }
-    }
-    .el-table__header-wrapper {
-      .el-table__header {
-        tr {
-          th {
-            background-color: @Hcolour !important;
-          }
-        }
-      }
-    }
-    .el-table__body-wrapper {
-      background-color: #5e6983 !important;
-      .el-table__body {
-      }
-
-      &::-webkit-scrollbar-track {
-        -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1);
-        background-color: #141627;
-        border-radius: 5px;
-      }
-
-      &::-webkit-scrollbar {
-        width: 5px;
-        background-color: #141627;
-      }
-
-      &::-webkit-scrollbar-thumb {
-        border-radius: 5px;
-        background-image: -webkit-gradient(linear, 20% 0%, 20% 0%, from(#d1dbe5), to(#d1dbe5), color-stop(.2, #141627))
-      }
-    }
-    &:before {
-      background-color: transparent !important;
+  .t_th, .t_tr {
+    width: 100%;
+    .t_td {
+      float: left;
+      width: 25%;
+      display: block;
+      font-size: 12px;
+      text-align: left;
     }
   }
-  .el-table__expanded-cell {
-    background-color: #141627 !important;
+  .t_th {
+    .t_td {
+      line-height: 24px;
+      background-color: #1c1e31;
+      color: #7d7f93;
+    }
+  }
+  .t_tr {
+    background-color: #0b0c14;
+    height: 22px;
+    &:nth-child(2n+1) {
+      background-color: #1c1e31;
+    }
+    &:hover{
+      background-color: #7d7f93;
+    }
+    .t_td {
+      line-height: 22px;
+      color: #edeef6;
+    }
   }
 }
+
 

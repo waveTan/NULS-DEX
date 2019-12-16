@@ -1,30 +1,44 @@
 import axios from 'axios'
-import * as config from './../config.js'
-import {chainID} from './util'
+import {API_TIME, API_URL} from './../config.js'
 
-axios.defaults.timeout = config.API_TIME;
-axios.defaults.baseURL = config.API_URL;
+axios.defaults.timeout = API_TIME;
+axios.defaults.baseURL = API_URL;
+axios.defaults.headers.Accept = 'application/json';
+axios.defaults.headers.get['Content-Type'] = 'application/json';
 axios.defaults.headers.post['Content-Type'] = 'application/json';
+
+
+/**
+ * 封装get请求
+ * Encapsulation get method
+ * @param url
+ * @returns {Promise}
+ */
+export async function get(url) {
+  let newUrl = API_URL + url;
+  console.log(newUrl);
+  try {
+    let res = await axios.get(url);
+    return (res.data.data)
+  } catch (err) {
+    return {success: false, data: err}
+  }
+}
 
 /**
  * 封装post请求
  * Encapsulation post method
  * @param url
- * @param methodName
  * @param data
  * @returns {Promise}
  */
-export function post(url, methodName, data = []) {
-  return new Promise((resolve, reject) => {
-    data.unshift(chainID());
-    const params = {"jsonrpc": "2.0", "method": methodName, "params": data, "id": 5898};
-    /* console.log(url);
-     console.log(params);*/
-    axios.post(url, params)
-      .then(response => {
-        resolve(response.data)
-      }, err => {
-        reject(err)
-      })
-  })
+export async function post(url, data) {
+  let newUrl = API_URL + url;
+  //console.log(newUrl, data);
+  try {
+    let res = await axios.post(url, data);
+    return (res.data.data)
+  } catch (err) {
+    return {success: false, data: err}
+  }
 }
