@@ -42,13 +42,14 @@
     bottom: 0;
     width: 100%;
     position: fixed;
-    bottom: 0;
-    .w1200 {
+    .w1400 {
       height: 100%;
       line-height: 60px;
       ul {
         li {
           padding: 0 10px;
+          color: #dedede;
+          cursor: pointer;
           &:first-child {
             padding: 0 10px 0 0;
           }

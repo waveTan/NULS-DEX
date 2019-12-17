@@ -2,9 +2,9 @@
   <div class="right_bar">
     <div class="title fwhite">
       <div class="fl">
-        <i class="el-icon-s-fold click"></i>
-        <i class="el-icon-s-unfold click"></i>
-        <i class="el-icon-s-operation click"></i>
+        <i class="el-icon-s-operation" :class="coinOrderValue === 0 ? 'is_checked' : ''" @click="orderValue(0)"></i>
+        <i class="el-icon-s-fold" :class="coinOrderValue === 1 ? 'is_checked' : ''" @click="orderValue(1)"></i>
+        <i class="el-icon-s-unfold" :class="coinOrderValue === 2 ? 'is_checked' : ''" @click="orderValue(2)"></i>
       </div>
       <div class="fr">
         <span class="font12">深度合并</span>
@@ -15,38 +15,41 @@
       </div>
     </div>
 
-    <div class="table cb">
-      <el-table :data="buyData" stripe>
-        <el-table-column prop="price" align="center" label="价格(NULS)" width="95">
-        </el-table-column>
-        <el-table-column prop="count" align="center" label="数量(USDI)" width="75">
-        </el-table-column>
-        <el-table-column align="center" label="成交额(NULS)" min-width="75">
-          <template slot-scope="scope">
-            <span>{{scope.row.transaction}}%</span>
-          </template>
-        </el-table-column>
-      </el-table>
+    <div class="buy table cb" v-show="coinOrderValue ===0 || coinOrderValue ===1">
+      <div class="t_th">
+        <div class="t_td" style="width: 120px;">价格(NULS)</div>
+        <div class="t_td" style="width: 70px;">数量(USDI)</div>
+        <div class="t_td" style="width: 110px;">成交额(NULS)</div>
+      </div>
+      <div class="t_tr cb" v-for="(item,index) in buyData" :key="index">
+        <div class="t_bg">
+          <div class="t_bt" :style="'width:'+item.width+'%'"></div>
+        </div>
+        <div class="t_td" style="width: 120px; color:#7a2e3c;">{{item.price}}</div>
+        <div class="t_td" style="width: 70px;">{{item.count}}</div>
+        <div class="t_td" style="width: 60px;">{{item.transaction}}%</div>
+      </div>
     </div>
 
-    <div class="title r_middle">
-      <span>36566.36<i class="el-icon-top"></i> $5336.66</span>
+    <div class="title r_middle" v-show="coinOrderValue === 0 ">
+      <span>36566.36<i class="el-icon-top"></i> <font>$5336.66</font></span>
     </div>
 
-    <div class="table cb">
-      <el-table :data="sellData" stripe>
-        <el-table-column prop="price" align="center" label="价格(NULS)" width="95">
-        </el-table-column>
-        <el-table-column prop="count" align="center" label="数量(USDI)" width="75">
-        </el-table-column>
-        <el-table-column align="center" label="成交额(NULS)" min-width="75">
-          <template slot-scope="scope">
-            <span>{{scope.row.transaction}}%</span>
-          </template>
-        </el-table-column>
-      </el-table>
+    <div class="sell table cb" v-show="coinOrderValue ===0 || coinOrderValue ===2">
+      <div class="t_th" v-show="coinOrderValue ===0 || coinOrderValue ===2">
+        <div class="t_td" style="width: 120px;">价格(NULS)</div>
+        <div class="t_td" style="width: 70px;">数量(USDI)</div>
+        <div class="t_td" style="width: 110px;">成交额(NULS)</div>
+      </div>
+      <div class="t_tr cb" v-for="(item,index) in sellData" :key="index">
+        <div class="t_bg">
+          <div class="t_bt" :style="'width:'+item.width+'%'"></div>
+        </div>
+        <div class="t_td" style="width: 120px; color:#06ba63;">{{item.price}}</div>
+        <div class="t_td" style="width: 70px;">{{item.count}}</div>
+        <div class="t_td" style="width: 60px;">{{item.transaction}}%</div>
+      </div>
     </div>
-
   </div>
 </template>
 
@@ -55,47 +58,84 @@
     name: "right",
     data() {
       return {
+        coinOrderValue: 0,//交易对订单0：买卖各一半，1：买，2：卖
         //买列表
         buyData: [
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
+          {price: '123.12564', count: '222', transaction: "55456", width: 10},
+          {price: '123.12564', count: '222', transaction: "55456", width: 13},
+          {price: '123.12564', count: '222', transaction: "55456", width: 18},
+          {price: '123.12564', count: '222', transaction: "55456", width: 20},
+          {price: '123.12564', count: '222', transaction: "55456", width: 60},
+          {price: '123.12564', count: '222', transaction: "55456", width: 70},
+          {price: '123.12564', count: '222', transaction: "55456", width: 70},
+          {price: '123.12564', count: '222', transaction: "55456", width: 18},
+          {price: '123.12564', count: '222', transaction: "55456", width: 30},
+          {price: '123.12564', count: '222', transaction: "55456", width: 40},
+          {price: '123.12564', count: '222', transaction: "55456", width: 55},
+          {price: '123.12564', count: '222', transaction: "55456", width: 99},
+          {price: '123.12564', count: '222', transaction: "55456", width: 22},
+
         ],
         //卖列表
         sellData: [
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
-          {price: 'BTC/NULS', count: '1.2222', transaction: "55.26"},
+          {price: '123.12564', count: '222', transaction: "55456", width: 10},
+          {price: '123.12564', count: '222', transaction: "55456", width: 13},
+          {price: '123.12564', count: '222', transaction: "55456", width: 18},
+          {price: '123.12564', count: '222', transaction: "55456", width: 20},
+          {price: '123.12564', count: '222', transaction: "55456", width: 60},
+          {price: '123.12564', count: '222', transaction: "55456", width: 70},
+          {price: '123.12564', count: '222', transaction: "55456", width: 18},
+          {price: '123.12564', count: '222', transaction: "55456", width: 30},
+          {price: '123.12564', count: '222', transaction: "55456", width: 40},
+          {price: '123.12564', count: '222', transaction: "55456", width: 40},
+          {price: '123.12564', count: '222', transaction: "55456", width: 40},
+          {price: '123.12564', count: '222', transaction: "55456", width: 40},
+          {price: '123.12564', count: '222', transaction: "55456", width: 55},
+          {price: '123.12564', count: '222', transaction: "55456", width: 66},
+          {price: '123.12564', count: '222', transaction: "55456", width: 99},
+          {price: '123.12564', count: '222', transaction: "55456", width: 22},
         ],
         depthValue: '1',//深度系数
       };
     },
     created() {
+      this.getOrderList();
     },
     components: {},
-    methods: {}
+    methods: {
+
+      /**
+       * @disc: 交易对类型选择
+       * @params: type 0:自选1:nuls 2:usdi
+       * @date: 2019-12-13 14:31
+       * @author: Wave
+       */
+      orderValue(type) {
+        this.coinOrderValue = type;
+      },
+
+      /**
+       * @disc: 获取交易对挂单盘口
+       * @params: type
+       * @date: 2019-12-13 15:44
+       * @author: Wave
+       */
+      async getOrderList() {
+        let url = '/order/list/';
+        let data = {
+          "tradingHash": "0287c7b56ed23e9",
+          "decimal": 1,
+          "size": 1
+        };
+        let coinRes = await this.$get(url, data);
+        console.log(coinRes);
+        /*if (!coinRes.success) {
+          this.$message({message: '获取交易对错误:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});
+        }
+        let newArr = coinRes.result;
+        this.counterpartyData = [...newArr, ...coinRes.result]*/
+      },
+    }
   }
 </script>
 
@@ -110,15 +150,31 @@
       line-height: 30px;
       .fl {
         i {
-          font-size: 20px;
-          margin: 0 2.5px;
-          &:first-child {
-            margin: 0 0 0 5px;
+          cursor: pointer;
+          color: #608FFF;
+          font-size: 18px;
+          margin: 0 10px;
+          border: 1px solid #888db5;
+          border-radius: 2px;
+          &:hover {
+            border: 1px solid #149af2;
           }
+          &:first-child {
+            margin: 0 0 0 10px;
+          }
+          &:last-child {
+            margin: 0;
+          }
+        }
+        .is_checked {
+          border: 1px solid #149af2;
         }
       }
       .fr {
         margin: 0 5px 0 0;
+        .font12 {
+          color: #7d7f93;
+        }
         .depth {
           margin: 0 0 0 5px;
           .el-input--suffix {
@@ -127,8 +183,9 @@
               height: 18px;
               width: 28px;
               padding: 0 0 0 5px;
-              border-radius: 1px;
+              border-radius: 2px;
               background-color: @Bcolour2;
+              border: 1px solid #888db5;
             }
             .el-input__suffix {
               right: -5px;
@@ -141,14 +198,39 @@
             }
           }
           .el-select-dropdown {
-            min-width: 28px !important;
+            min-width: 28px;
+            background-color: transparent;
+            border: 1px solid #4c506f;
+            margin: -7px 0 0 0;
             .el-select-dropdown__list {
               .el-select-dropdown__item {
                 padding: 0 5px;
                 line-height: 20px;
                 height: 20px;
+                font-size: 12px;
+              }
+              .hover {
+
               }
             }
+            .popper__arrow {
+              display: none;
+            }
+          }
+        }
+      }
+    }
+    .buy, .sell {
+      .t_tr {
+        &:hover {
+          background-color: transparent;
+        }
+        &:nth-child(2n+1) {
+          background-color: #0b0c14;
+        }
+        .t_bg {
+          .t_bt {
+            background-color: #291b2c;
           }
         }
       }
@@ -161,7 +243,22 @@
       color: @Ncolour;
       font-size: 22px;
       font-weight: bold;
+      border: 0;
+      font {
+        color: #ffffff;
+        font-size: 16px;
+        margin: 0 0 0 10px;
+      }
+    ;
     }
-
+    .sell {
+      .t_tr {
+        .t_bg {
+          .t_bt {
+            background-color: #14272c;
+          }
+        }
+      }
+    }
   }
 </style>

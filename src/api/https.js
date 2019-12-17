@@ -12,13 +12,14 @@ axios.defaults.headers.post['Content-Type'] = 'application/json';
  * 封装get请求
  * Encapsulation get method
  * @param url
+ * @param data
  * @returns {Promise}
  */
-export async function get(url) {
+export async function get(url, data) {
   let newUrl = API_URL + url;
-  console.log(newUrl);
+  console.log(newUrl, data);
   try {
-    let res = await axios.get(url);
+    let res = await axios.get(newUrl, data);
     return (res.data.data)
   } catch (err) {
     return {success: false, data: err}
@@ -34,7 +35,7 @@ export async function get(url) {
  */
 export async function post(url, data) {
   let newUrl = API_URL + url;
-  //console.log(newUrl, data);
+  console.log(newUrl, data);
   try {
     let res = await axios.post(url, data);
     return (res.data.data)

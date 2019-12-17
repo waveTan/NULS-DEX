@@ -64,6 +64,10 @@ export function Division(nu, arg) {
 
 /**
  * 数字除以精度系数
+ * @param nu
+ * @param decimals
+ * @returns {string}
+ * @constructor
  */
 export function divisionDecimals(nu, decimals = 8) {
   let newNu = new BigNumber(Division(nu, Power(decimals)).toString());
@@ -72,6 +76,10 @@ export function divisionDecimals(nu, decimals = 8) {
 
 /**
  * 数字乘以精度系数
+ * @param nu
+ * @param decimals
+ * @returns {number}
+ * @constructor
  */
 export function timesDecimals(nu, decimals = 8) {
   let newNu = new BigNumber(Times(nu, Power(decimals)).toString());
@@ -99,45 +107,6 @@ export function passwordVerification(accountInfo, password) {
     return {success: true, pri: pri, pub: accountInfo.pub, address: accountInfo.address,aesPri:newAddressInfo.aesPri};
   } else {
     return {success: false};
-  }
-}
-
-/**
- * 获取链ID
- * @returns {number}
- */
-export function chainID() {
-  return API_CHAIN_ID
-}
-
-/**
- * 获取chainId+number
- * @returns {string}
- */
-export function chainIdNumber() {
-  return 'chainId' + chainID();
-}
-
-/**
- * 获取地址列表或选择地址
- * @param type 0:地址列表，1:选中地址
- * @returns {*}
- */
-export function addressInfo(type) {
-  let chainNumber = 'chainId' + chainID();
-  let addressList = localStorage.hasOwnProperty(chainNumber) ? JSON.parse(localStorage.getItem(chainNumber)) : [];
-  if (addressList) {
-    if (type === 0) {
-      return addressList
-    } else {
-      for (let item  of addressList) {
-        if (item.selection) {
-          return item
-        }
-      }
-    }
-  } else {
-    return addressList
   }
 }
 

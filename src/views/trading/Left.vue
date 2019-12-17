@@ -49,17 +49,18 @@
       </div>
 
       <div class="table cb">
-        <el-table :data="newestData" stripe>
-          <el-table-column align="center" label="价格" width="100">
-            <template slot-scope="scope">
-              <span>{{scope.row.price}}</span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="quantity" align="center" label="数量" width="100">
-          </el-table-column>
-          <el-table-column prop="time" align="center" label="时间" min-width="75">
-          </el-table-column>
-        </el-table>
+        <div class="t_th">
+          <div class="t_td" style="width: 115px; padding: 0 0 0 10px">价格</div>
+          <div class="t_td" style="width: 115px;">数量</div>
+          <div class="t_td" style="width: 70px;">时间</div>
+        </div>
+        <div class="t_tr cb" v-for="(item,index) in newestData" :key="index">
+          <div class="t_td" style="width: 115px;padding: 0 0 0 10px">
+            <span class="fCN">{{item.price}}</span>
+          </div>
+          <div class="t_td" style="width: 115px;">{{item.quantity}}</div>
+          <div class="t_td" style="width: 70px;">{{item.time}}</div>
+        </div>
       </div>
     </div>
     <!-- top_left_footer end -->
@@ -104,7 +105,7 @@
       };
     },
     created() {
-      this.getCoinList(-1);
+      //this.getCoinList(-1);
     },
     components: {},
     methods: {
@@ -203,7 +204,7 @@
               height: 20px;
               border-radius: 0;
               background-color: #141627;
-              padding:0 0 0 20px;
+              padding: 0 0 0 20px;
               border-color: #888db5;
             }
             .el-input__prefix {

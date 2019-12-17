@@ -1,5 +1,4 @@
 import {post} from './https'
-import {Plus, chainID} from './util'
 
 /**
  * 计算手续费
@@ -23,88 +22,6 @@ export function countCtxFee(tx, signatrueCount) {
   return 1000000 * Math.ceil(txSize / 1024);
 }
 
-/**
- * 获取inputs and outputs
- * @param transferInfo
- * @param balanceInfo
- * @param type
- * @returns {*}
- **/
-export async function inputsOrOutputs(transferInfo, balanceInfo, type) {
-  let newAmount = Number(Plus(transferInfo.amount, transferInfo.fee));
-  let newLocked = 0;
-  let newNonce = balanceInfo.nonce;
-  let newoutputAmount = transferInfo.amount;
-  let newLockTime = 0;
-  if (balanceInfo.balance < newAmount) {
-    return {success: false, data: "Your balance is not enough."}
-  }
-  if (type === 4) {
-    newLockTime = -1;
-  } else if (type === 5) {
-    newLockTime = -1;
-  } else if (type === 6) {
-    newAmount = transferInfo.amount;
-    newLocked = -1;
-    newNonce = transferInfo.depositHash.substring(transferInfo.depositHash.length - 16);
-    newoutputAmount = transferInfo.amount - transferInfo.fee;
-  } else if (type === 9) {
-    newAmount = transferInfo.amount;
-    newLocked = -1;
-    newNonce = transferInfo.depositHash.substring(transferInfo.depositHash.length - 16);
-    newoutputAmount = transferInfo.amount - transferInfo.fee;
-    //锁定三天
-    newLockTime = (new Date()).valueOf() + 3600000 * 72;
-  } else {
-    //return {success: false, data: "No transaction type"}
-  }
-
-  let inputs = [{
-    address: transferInfo.fromAddress,
-    assetsChainId: transferInfo.assetsChainId,
-    assetsId: transferInfo.assetsId,
-    amount: newAmount,
-    locked: newLocked,
-    nonce: newNonce
-  }];
-
-  if (type === 2 && transferInfo.assetsChainId !== chainID()) {
-    inputs[0].amount = transferInfo.amount;
-    //账户转出资产余额
-    let nulsbalance = await getBalanceOrNonceByAddress(chainID(), transferInfo.assetsId, transferInfo.fromAddress);
-    if (nulsbalance.data.balance < 100000) {
-      console.log("余额小于手续费");
-      return
-    }
-    inputs.push({
-      address: transferInfo.fromAddress,
-      assetsChainId: chainID(),
-      assetsId: transferInfo.assetsId,
-      amount: 100000,
-      locked: newLocked,
-      nonce: nulsbalance.data.nonce
-    })
-  }
-  let outputs = [];
-  if (type === 15 || type === 17) {
-    return {success: true, data: {inputs: inputs, outputs: outputs}};
-  }
-  if (type === 16) {
-    if (!transferInfo.toAddress) {
-      return {success: true, data: {inputs: inputs, outputs: outputs}};
-    } else {
-      newoutputAmount = transferInfo.value;
-    }
-  }
-  outputs = [{
-    address: transferInfo.toAddress ? transferInfo.toAddress : transferInfo.fromAddress,
-    assetsChainId: transferInfo.assetsChainId,
-    assetsId: transferInfo.assetsId,
-    amount: newoutputAmount,
-    lockTime: newLockTime
-  }];
-  return {success: true, data: {inputs: inputs, outputs: outputs}};
-}
 
 /**
  * 获取地址信息根据地址
@@ -128,7 +45,6 @@ export async function getAddressInfoByAddress(address) {
 
 /**
  * 获取地址的余额及nonce根据地址
- * @param assetChainId
  * @param assetId
  * @param address
  * @returns {Promise<any>}

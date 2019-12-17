@@ -15,7 +15,7 @@ export const API_CHAIN_ID = 1;
 export const API_PREFIX = 'NULS';
 //正式网络的api
 //export let API_URL = IS_DEV ? 'https://public1.nuls.io' : 'https://public1.nuls.io';
-export let API_URL = IS_DEV ? 'http://192.168.1.160:8081' : 'http://192.168.1.160:8081';
+export let API_URL = IS_DEV ? 'http://192.168.1.160:8081' : 'http://api.rap.nuls.center/app/mock/19';
 //请求最迟时间
 export const API_TIME = '9000';
 //浏览器连接地址

@@ -15,10 +15,10 @@
         <div class="fl middle">
           <!-- top_middle_top start -->
           <div class="m_top">
-            <div class="m_p_list fl">NULS/BTC</div>
+            <div class="m_p_list fl">{{tradingInfo.tradingName}}</div>
             <div class="m_p_list fl">
               <div>最新价</div>
-              <div>1.36658</div>
+              <div>{{tradingInfo.newPrices}}</div>
             </div>
             <div class="m_p_list fl">
               <div>24h涨跌</div>
@@ -69,6 +69,70 @@
           <div class="m_footer">
             <div class="title sub_info fwhite">
               限价单
+            </div>
+            <div class="buy_sell">
+              <div class="fl buy">
+                <div class="name">
+                  <span class="font14">买入 USDI</span><font class="fr font12">可用: 2365.2365 NULS</font>
+                </div>
+                <el-form :model="buyForm" :rules="buyRules" ref="buyForm" class="buy_form" label-width="44px">
+                  <el-form-item label="价格">
+                    <el-input v-model="buyForm.name">
+                      <i slot="suffix">NULS</i>
+                    </el-input>
+                  </el-form-item>
+                  <el-form-item label="数量">
+                    <el-input v-model="buyForm.name">
+                      <i slot="suffix">USDI</i>
+                    </el-input>
+                  </el-form-item>
+                  <el-form-item label="" class="percentage">
+                    <span>25%</span>
+                    <span>50%</span>
+                    <span>75%</span>
+                    <span>100%</span>
+                  </el-form-item>
+                  <el-form-item label="金额">
+                    <el-input v-model="buyForm.name">
+                      <i slot="suffix">NULS</i>
+                    </el-input>
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="success" @click="submitForm('buyForm')">买入 USDI</el-button>
+                  </el-form-item>
+                </el-form>
+              </div>
+              <div class="fr sell">
+                <div class="name">
+                  <span class="font14">卖出 USDI</span><font class="fr font12">可用: 2365.2365 NULS</font>
+                </div>
+                <el-form :model="buyForm" :rules="buyRules" ref="buyForm" class="buy_form" label-width="44px">
+                  <el-form-item label="价格">
+                    <el-input v-model="buyForm.name">
+                      <i slot="suffix">NULS</i>
+                    </el-input>
+                  </el-form-item>
+                  <el-form-item label="数量">
+                    <el-input v-model="buyForm.name">
+                      <i slot="suffix">USDI</i>
+                    </el-input>
+                  </el-form-item>
+                  <el-form-item label="" class="percentage">
+                    <span>25%</span>
+                    <span>50%</span>
+                    <span>75%</span>
+                    <span>100%</span>
+                  </el-form-item>
+                  <el-form-item label="金额">
+                    <el-input v-model="buyForm.name">
+                      <i slot="suffix">NULS</i>
+                    </el-input>
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="danger" @click="submitForm('buyForm')">卖出 USDI</el-button>
+                  </el-form-item>
+                </el-form>
+              </div>
             </div>
           </div>
         </div>
@@ -131,11 +195,12 @@
 <script>
   import Left from '@/views/trading/Left'
   import Right from '@/views/trading/Right'
+  import {divisionDecimals} from '@/api/util.js'
 
   export default {
     data() {
       return {
-
+        tradingInfo: {},//交易对信息
         //分钟下拉框
         minuteOptions: [
           {
@@ -212,6 +277,17 @@
             {'日期': '2004-02-26', open: 10598.14, close: 10580.14, lowest: 10493.71, highest: 10652.96, vol: 223230000},
             {'日期': '2004-02-27', open: 10581.55, close: 10583.92, lowest: 10519.03, highest: 10689.55, vol: 200050000}
           ]
+        },
+
+        buyForm: {
+          name: ''
+        },
+
+        buyRules: {
+          name: [
+            {required: true, message: '请输入活动名称', trigger: 'blur'},
+            {min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'blur'}
+          ],
         },
 
         //当前委托列表
@@ -325,12 +401,35 @@
             trunoverTotal: '3.265'
           },
         ],
+
       };
     },
     created() {
+      let tradingHash = '0287c7b56ed23e9';
+      this.getTradingInfo(tradingHash);
     },
     components: {Left, Right},
-    methods: {}
+    methods: {
+
+      /**
+       * @disc: 获取交易对详情
+       * @params: tradingHash
+       * @date: 2019-12-16 10:41
+       * @author: Wave
+       */
+      async getTradingInfo(tradingHash) {
+        let url = '/trading/get/';
+        let data = {tradingHash};
+        let TradingInfoRes = await this.$get(url, data);
+        console.log(TradingInfoRes);
+        if (!TradingInfoRes.success) {
+          this.$message({message: '获取交易对错误:' + JSON.stringify(TradingInfoRes.data), type: 'error', duration: 3000});
+          return;
+        }
+        this.tradingInfo = TradingInfoRes.result;
+        this.tradingInfo.newPrices = divisionDecimals(this.tradingInfo.newPrice, this.tradingInfo.quoteDecimal)
+      },
+    }
   }
 </script>
 
@@ -458,6 +557,124 @@
             line-height: 40px;
             padding: 0 0 0 16px;
           }
+          .buy_sell {
+            .buy, .sell {
+              border-right: 1px solid #4c506f;
+              width: 335px;
+              height: 236px;
+              margin: 18px 0 0 55px;
+              padding: 0 55px 0 0;
+              .name {
+                color: #edeef6;
+                margin: 0 0 16px;
+              }
+              .buy_form {
+                .el-form-item {
+                  margin-bottom: 0;
+                  .el-form-item__label {
+                    text-align: left;
+                    line-height: 38px !important;
+                    font-size: 12px;
+                    color: #7d7f93;
+                  }
+                  .el-form-item__content {
+                    font-size: 12px;
+                    line-height: 38px;
+                    .el-input {
+                      font-size: 12px;
+                      line-height: 30px;
+                      height: 30px;
+                      .el-input__inner {
+                        line-height: 30px;
+                        height: 30px;
+                        border-radius: 0;
+                        background-color: transparent;
+                        border-color: #888db5;
+                      }
+                      .el-input__suffix {
+                        right: 12px;
+                        i {
+                        }
+                      }
+                    }
+                    .el-button {
+                      width: 280px;
+                      height: 35px;
+                      border-radius: 0;
+                      color: #ffffff;
+                      font-size: 14px;
+                      margin: 19px 0 0 -44px;
+                      line-height: 12px;
+                    }
+                    .el-button--success {
+                      background-color: #06ba63;
+                      border-color: #06ba63;
+                    }
+                    .el-button--mini {
+                      width: 48.7px;
+                      height: 22px;
+                      padding: 0;
+                      text-align: center;
+                      border-radius: 0;
+                      background-color: transparent;
+                      border-color: #888db5;
+                    }
+                  }
+                }
+                .percentage {
+                  .el-form-item__content {
+                    margin: 4px 0;
+                    span {
+                      width: 50px;
+                      height: 22px;
+                      border: 1px solid #7d7f93;
+                      display: block;
+                      float: left;
+                      color: #edeef6;
+                      text-align: center;
+                      line-height: 20px;
+                      margin: 0 11.5px 0 0;
+                      cursor: pointer;
+                      &:hover {
+                        color: #06ba63;
+                        border-color: #06ba63;
+                      }
+                      &:last-child {
+                        margin: 0;
+                      }
+                    }
+                  }
+
+                }
+              }
+            }
+            .sell {
+              margin: 18px 0 0 55px;
+              padding: 0 55px 0 0;
+              border: 0;
+              .el-form {
+                .el-form-item {
+                  .el-form-item__content {
+                    .el-button--danger {
+                      border-color: #db4355;
+                      background-color: #db4355;
+                    }
+                  }
+                }
+                .percentage {
+                  .el-form-item__content {
+                    span {
+                      &:hover {
+                        color: #db4355;
+                        border-color: #db4355;
+                      }
+                    }
+                  }
+                }
+              }
+
+            }
+          }
         }
       }
 
@@ -470,7 +687,7 @@
     .footer {
       height: 300px;
       border: @BD1;
-      margin: 0 0 0 0;
+      margin: 0 0 60px 0;
       background-color: @Bcolour2;
       .title {
         font-size: 14px;
