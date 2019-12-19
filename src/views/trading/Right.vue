@@ -17,91 +17,66 @@
 
     <div class="buy table cb" v-show="coinOrderValue ===0 || coinOrderValue ===1">
       <div class="t_th">
-        <div class="t_td" style="width: 120px;">价格(NULS)</div>
+        <div class="t_td" style="width: 120px; padding-left: 10px">价格(NULS)</div>
         <div class="t_td" style="width: 70px;">数量(USDI)</div>
         <div class="t_td" style="width: 110px;">成交额(NULS)</div>
       </div>
-      <div class="t_tr cb" v-for="(item,index) in buyData" :key="index">
-        <div class="t_bg">
-          <div class="t_bt" :style="'width:'+item.width+'%'"></div>
-        </div>
-        <div class="t_td" style="width: 120px; color:#7a2e3c;">{{item.price}}</div>
-        <div class="t_td" style="width: 70px;">{{item.count}}</div>
-        <div class="t_td" style="width: 60px;">{{item.transaction}}%</div>
+      <div class="t_tr cb" v-for="(item,index) in buyData" :key="index" v-loading="orderListLoading">
+        <div class="t_td" style="width: 120px; color:#7a2e3c;padding-left: 10px">{{item.prices}}</div>
+        <div class="t_td" style="width: 70px;">{{item.number}}</div>
+        <div class="t_td" style="width: 60px;">{{item.amount}}</div>
       </div>
     </div>
 
-    <div class="title r_middle" v-show="coinOrderValue === 0 ">
+    <div class="title r_middle" v-show="coinOrderValue === 0 " v-loading="orderListLoading">
       <span>36566.36<i class="el-icon-top"></i> <font>$5336.66</font></span>
     </div>
 
     <div class="sell table cb" v-show="coinOrderValue ===0 || coinOrderValue ===2">
       <div class="t_th" v-show="coinOrderValue ===0 || coinOrderValue ===2">
-        <div class="t_td" style="width: 120px;">价格(NULS)</div>
+        <div class="t_td" style="width: 120px;padding-left: 10px">价格(NULS)</div>
         <div class="t_td" style="width: 70px;">数量(USDI)</div>
         <div class="t_td" style="width: 110px;">成交额(NULS)</div>
       </div>
-      <div class="t_tr cb" v-for="(item,index) in sellData" :key="index">
-        <div class="t_bg">
-          <div class="t_bt" :style="'width:'+item.width+'%'"></div>
-        </div>
-        <div class="t_td" style="width: 120px; color:#06ba63;">{{item.price}}</div>
-        <div class="t_td" style="width: 70px;">{{item.count}}</div>
-        <div class="t_td" style="width: 60px;">{{item.transaction}}%</div>
+      <div class="t_tr cb" v-for="(item,index) in sellData" :key="index" v-loading="orderListLoading">
+        <div class="t_td" style="width: 120px; color:#06ba63;padding-left: 10px">{{item.prices}}</div>
+        <div class="t_td" style="width: 70px;">{{item.number}}</div>
+        <div class="t_td" style="width: 60px;">{{item.amount}}</div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+  import {divisionDecimals} from '@/api/util.js'
+
   export default {
     name: "right",
     data() {
       return {
         coinOrderValue: 0,//交易对订单0：买卖各一半，1：买，2：卖
-        //买列表
-        buyData: [
-          {price: '123.12564', count: '222', transaction: "55456", width: 10},
-          {price: '123.12564', count: '222', transaction: "55456", width: 13},
-          {price: '123.12564', count: '222', transaction: "55456", width: 18},
-          {price: '123.12564', count: '222', transaction: "55456", width: 20},
-          {price: '123.12564', count: '222', transaction: "55456", width: 60},
-          {price: '123.12564', count: '222', transaction: "55456", width: 70},
-          {price: '123.12564', count: '222', transaction: "55456", width: 70},
-          {price: '123.12564', count: '222', transaction: "55456", width: 18},
-          {price: '123.12564', count: '222', transaction: "55456", width: 30},
-          {price: '123.12564', count: '222', transaction: "55456", width: 40},
-          {price: '123.12564', count: '222', transaction: "55456", width: 55},
-          {price: '123.12564', count: '222', transaction: "55456", width: 99},
-          {price: '123.12564', count: '222', transaction: "55456", width: 22},
-
-        ],
-        //卖列表
-        sellData: [
-          {price: '123.12564', count: '222', transaction: "55456", width: 10},
-          {price: '123.12564', count: '222', transaction: "55456", width: 13},
-          {price: '123.12564', count: '222', transaction: "55456", width: 18},
-          {price: '123.12564', count: '222', transaction: "55456", width: 20},
-          {price: '123.12564', count: '222', transaction: "55456", width: 60},
-          {price: '123.12564', count: '222', transaction: "55456", width: 70},
-          {price: '123.12564', count: '222', transaction: "55456", width: 18},
-          {price: '123.12564', count: '222', transaction: "55456", width: 30},
-          {price: '123.12564', count: '222', transaction: "55456", width: 40},
-          {price: '123.12564', count: '222', transaction: "55456", width: 40},
-          {price: '123.12564', count: '222', transaction: "55456", width: 40},
-          {price: '123.12564', count: '222', transaction: "55456", width: 40},
-          {price: '123.12564', count: '222', transaction: "55456", width: 55},
-          {price: '123.12564', count: '222', transaction: "55456", width: 66},
-          {price: '123.12564', count: '222', transaction: "55456", width: 99},
-          {price: '123.12564', count: '222', transaction: "55456", width: 22},
-        ],
+        buyData: [],//买列表
+        sellData: [],//卖列表
+        orderListLoading: false,
         depthValue: '1',//深度系数
       };
     },
     created() {
-      this.getOrderList();
+      this.getOrderList(this.$store.getters.getDealData.hash);
     },
     components: {},
+    computed: {
+      tradingName() {
+        return this.$store.getters.getDealData.tradingName
+      }
+    },
+    watch: {
+      tradingName: function () {
+        this.tradingInfo = this.$store.getters.getDealData;
+        this.getOrderList(this.tradingInfo.hash);
+        this.orderListLoading = true;
+      }
+    },
     methods: {
 
       /**
@@ -120,20 +95,28 @@
        * @date: 2019-12-13 15:44
        * @author: Wave
        */
-      async getOrderList() {
+      async getOrderList(tradingHash) {
         let url = '/order/list/';
-        let data = {
-          "tradingHash": "0287c7b56ed23e9",
-          "decimal": 1,
-          "size": 1
-        };
-        let coinRes = await this.$get(url, data);
-        console.log(coinRes);
-        /*if (!coinRes.success) {
-          this.$message({message: '获取交易对错误:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});
+        let data = {"tradingHash": tradingHash, "decimal": 1, "type": 0, "size": 1};
+        let coinRes = await this.$post(url, data);
+        //console.log(coinRes);
+        if (!coinRes.success) {
+          this.$message({message: '获取交易对挂单错误:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});
         }
-        let newArr = coinRes.result;
-        this.counterpartyData = [...newArr, ...coinRes.result]*/
+        for (let item of coinRes.result.buyOrderList) {
+          item.prices = Number(divisionDecimals(item.price, item.quoteDecimal)).toFixed(3);
+          item.number = Number(divisionDecimals(item.quoteAmount, item.quoteDecimal)).toFixed(3);
+          item.amount = Number(divisionDecimals(item.baseAmount, item.baseDecimal)).toFixed(3);
+        }
+
+        for (let item of coinRes.result.sellOrderList) {
+          item.prices = Number(divisionDecimals(item.price, item.quoteDecimal)).toFixed(3);
+          item.number = Number(divisionDecimals(item.quoteAmount, item.quoteDecimal)).toFixed(3);
+          item.amount = Number(divisionDecimals(item.baseAmount, item.baseDecimal)).toFixed(3);
+        }
+        this.buyData = coinRes.result.buyOrderList;
+        this.sellData = coinRes.result.sellOrderList;
+        this.orderListLoading = false;
       },
     }
   }

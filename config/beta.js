@@ -13,7 +13,7 @@ export const API_CHAIN_ID = 2;
 //链前缀
 export const API_PREFIX = 'tNULS';
 //正式、测试网络的api
-export let API_URL = IS_DEV ? 'https://beta.wallet.nuls.io/api' : 'https://beta.wallet.nuls.io/api';
+export let API_URL = IS_DEV ? 'http://192.168.1.160:8081' : 'http://192.168.1.160:8081';
 //请求最迟时间
 export const API_TIME = '6000';
 //浏览器连接地址

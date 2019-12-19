@@ -13,8 +13,7 @@
 
         <!-- top_middle start -->
         <div class="fl middle">
-          <!-- top_middle_top start -->
-          <div class="m_top">
+          <div class="m_top" v-loading="tradingInfoLoading">
             <div class="m_p_list fl">{{tradingInfo.tradingName}}</div>
             <div class="m_p_list fl">
               <div>最新价</div>
@@ -22,22 +21,21 @@
             </div>
             <div class="m_p_list fl">
               <div>24h涨跌</div>
-              <div>+25.36%</div>
+              <div>{{tradingInfo.upsDowns}}</div>
             </div>
             <div class="m_p_list fl">
               <div>24h最高价</div>
-              <div>1.3662228</div>
+              <div>{{tradingInfo.highPrice24s}}</div>
             </div>
             <div class="m_p_list fl">
               <div>24h最低价</div>
-              <div>1.36658</div>
+              <div>{{tradingInfo.lowPrice24s}}</div>
             </div>
             <div class="m_p_list fl">
               <div>24h成交量</div>
-              <div>8136,6585,22</div>
+              <div>{{tradingInfo.dealAmount24s}}</div>
             </div>
           </div>
-          <!-- top_middle_top end -->
 
           <div class="m_middle">
             <div class="title sub_info fwhite">
@@ -193,14 +191,16 @@
 </template>
 
 <script>
+  import moment from 'moment'
   import Left from '@/views/trading/Left'
   import Right from '@/views/trading/Right'
-  import {divisionDecimals} from '@/api/util.js'
+  import {divisionDecimals, getLocalTime} from '@/api/util.js'
 
   export default {
     data() {
       return {
         tradingInfo: {},//交易对信息
+        tradingInfoLoading: false,
         //分钟下拉框
         minuteOptions: [
           {
@@ -233,10 +233,9 @@
             label: '18小时'
           }],
         hourValue: '',
-
         //k线图
         chartData: {
-          columns: ['日期', 'open', 'close', 'lowest', 'highest', 'vol'],
+          columns: ['time', 'open', 'close', 'lowest', 'highest', 'vol'],
           rows: [
             {'日期': '2004-01-05', open: 10411.85, close: 10544.07, lowest: 10411.85, highest: 10575.92, vol: 221290000},
             {'日期': '2004-01-06', open: 10543.85, close: 10538.66, lowest: 10454.37, highest: 10584.07, vol: 191460000},
@@ -278,11 +277,9 @@
             {'日期': '2004-02-27', open: 10581.55, close: 10583.92, lowest: 10519.03, highest: 10689.55, vol: 200050000}
           ]
         },
-
         buyForm: {
           name: ''
         },
-
         buyRules: {
           name: [
             {required: true, message: '请输入活动名称', trigger: 'blur'},
@@ -290,125 +287,27 @@
           ],
         },
 
-        //当前委托列表
-        entrustData: [
-          {
-            hash: 'sf545...d4f55',
-            time: '10-25 15:25:45',
-            counterparty: 'USDT/BNB',
-            direction: '买入',
-            price: '0.01235',
-            count: '1000.56',
-            total: '13.325',
-            turnover: '500',
-            trunoverRatio: '60',
-            trunoverTotal: '3.265'
-          },
-          {
-            hash: 'sf545...d4f55',
-            time: '10-25 15:25:45',
-            counterparty: 'USDT/BNB',
-            direction: '买入',
-            price: '0.01235',
-            count: '1000.56',
-            total: '13.325',
-            turnover: '500',
-            trunoverRatio: '60',
-            trunoverTotal: '3.265'
-          },
-          {
-            hash: 'sf545...d4f55',
-            time: '10-25 15:25:45',
-            counterparty: 'USDT/BNB',
-            direction: '买入',
-            price: '0.01235',
-            count: '1000.56',
-            total: '13.325',
-            turnover: '500',
-            trunoverRatio: '60',
-            trunoverTotal: '3.265'
-          },
-          {
-            hash: 'sf545...d4f55',
-            time: '10-25 15:25:45',
-            counterparty: 'USDT/BNB',
-            direction: '买入',
-            price: '0.01235',
-            count: '1000.56',
-            total: '13.325',
-            turnover: '500',
-            trunoverRatio: '60',
-            trunoverTotal: '3.265'
-          },
-          {
-            hash: 'sf545...d4f55',
-            time: '10-25 15:25:45',
-            counterparty: 'USDT/BNB',
-            direction: '买入',
-            price: '0.01235',
-            count: '1000.56',
-            total: '13.325',
-            turnover: '500',
-            trunoverRatio: '60',
-            trunoverTotal: '3.265'
-          },
-          {
-            hash: 'sf545...d4f55',
-            time: '10-25 15:25:45',
-            counterparty: 'USDT/BNB',
-            direction: '买入',
-            price: '0.01235',
-            count: '1000.56',
-            total: '13.325',
-            turnover: '500',
-            trunoverRatio: '60',
-            trunoverTotal: '3.265'
-          },
-          {
-            hash: 'sf545...d4f55',
-            time: '10-25 15:25:45',
-            counterparty: 'USDT/BNB',
-            direction: '买入',
-            price: '0.01235',
-            count: '1000.56',
-            total: '13.325',
-            turnover: '500',
-            trunoverRatio: '60',
-            trunoverTotal: '3.265'
-          },
-          {
-            hash: 'sf545...d4f55',
-            time: '10-25 15:25:45',
-            counterparty: 'USDT/BNB',
-            direction: '买入',
-            price: '0.01235',
-            count: '1000.56',
-            total: '13.325',
-            turnover: '500',
-            trunoverRatio: '60',
-            trunoverTotal: '3.265'
-          },
-          {
-            hash: 'sf545...d4f55',
-            time: '10-25 15:25:45',
-            counterparty: 'USDT/BNB',
-            direction: '买入',
-            price: '0.01235',
-            count: '1000.56',
-            total: '13.325',
-            turnover: '500',
-            trunoverRatio: '60',
-            trunoverTotal: '3.265'
-          },
-        ],
-
+        entrustData: [],//当前委托列表
       };
     },
     created() {
-      let tradingHash = '0287c7b56ed23e9';
-      this.getTradingInfo(tradingHash);
+      this.tradingInfo = this.$store.getters.getDealData;
+      this.getTradingGet(this.tradingInfo.hash);
     },
     components: {Left, Right},
+    computed: {
+      tradingName() {
+        return this.$store.getters.getDealData.tradingName
+      }
+    },
+    watch: {
+      tradingName: function () {
+        this.tradingInfo = this.$store.getters.getDealData;
+        this.getTradingInfo(this.tradingInfo.hash);
+        this.getTradingGet(this.tradingInfo.hash);
+        this.tradingInfoLoading = true;
+      }
+    },
     methods: {
 
       /**
@@ -418,16 +317,46 @@
        * @author: Wave
        */
       async getTradingInfo(tradingHash) {
-        let url = '/trading/get/';
-        let data = {tradingHash};
-        let TradingInfoRes = await this.$get(url, data);
-        console.log(TradingInfoRes);
-        if (!TradingInfoRes.success) {
-          this.$message({message: '获取交易对错误:' + JSON.stringify(TradingInfoRes.data), type: 'error', duration: 3000});
+        let url = '/coin/trading/get/' + tradingHash;
+        let tradingInfoRes = await this.$get(url);
+        //console.log(tradingInfoRes);
+        if (!tradingInfoRes.success) {
+          this.$message({message: '获取交易对错误:' + JSON.stringify(tradingInfoRes.data), type: 'error', duration: 3000});
           return;
         }
-        this.tradingInfo = TradingInfoRes.result;
-        this.tradingInfo.newPrices = divisionDecimals(this.tradingInfo.newPrice, this.tradingInfo.quoteDecimal)
+        tradingInfoRes.result.newPrices = divisionDecimals(tradingInfoRes.result.newPrice, tradingInfoRes.result.baseDecimal);
+        tradingInfoRes.result.upsDowns = tradingInfoRes.result.highPrice24 - tradingInfoRes.result.lowPrice24 === 0 ? 0 : (tradingInfoRes.result.highPrice24 - tradingInfoRes.result.lowPrice24) / tradingInfoRes.result.lowPrice24;
+        tradingInfoRes.result.highPrice24s = divisionDecimals(tradingInfoRes.result.highPrice24, tradingInfoRes.result.baseDecimal);
+        tradingInfoRes.result.lowPrice24s = divisionDecimals(tradingInfoRes.result.lowPrice24, tradingInfoRes.result.baseDecimal);
+        tradingInfoRes.result.dealAmount24s = divisionDecimals(tradingInfoRes.result.dealAmount24, tradingInfoRes.result.baseDecimal);
+        this.tradingInfo = tradingInfoRes.result;
+        this.tradingInfoLoading = false;
+      },
+
+      /**
+       * @disc: 获取交易对K线图
+       * @params: tradingHash
+       * @date: 2019-12-16 10:41
+       * @author: Wave
+       */
+      async getTradingGet(tradingHash) {
+        let url = '/view/kLine/list';
+        let data = {"tradingHash": tradingHash, "type": 1,};
+        let tradingGetRes = await this.$post(url, data);
+        //console.log(tradingGetRes);
+        if (!tradingGetRes.success) {
+          this.$message({message: '获取交易对K线图:' + JSON.stringify(TradingInfoRes.data), type: 'error', duration: 3000});
+          return;
+        }
+        for (let item of tradingGetRes.result) {
+          item.time = moment(getLocalTime(item.beginTime)).format('YYYY-MM-DD HH:mm:ss');
+          item.open = Number(divisionDecimals(item.endPrice, item.baseDecimal)).toFixed(3);
+          item.close = Number(divisionDecimals(item.beginPrice, item.baseDecimal)).toFixed(3);
+          item.lowest = Number(divisionDecimals(item.endPrice, item.baseDecimal)).toFixed(3);
+          item.highest = Number(divisionDecimals(item.beginPrice, item.baseDecimal)).toFixed(3);
+          item.vol = Number(item.amount).toFixed(3)
+        }
+        this.chartData.rows = tradingGetRes.result
       },
     }
   }
