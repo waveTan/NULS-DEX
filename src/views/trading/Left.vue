@@ -121,7 +121,7 @@
         } else if (type === 2) {
           data = {};
         }
-        let coinRes = await this.$post(url, data);
+        let coinRes = await this.$dexPost(url, data);
         //console.log(coinRes);
         if (!coinRes.success) {
           this.$message({message: '获取交易对错误:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});
@@ -157,7 +157,7 @@
       async getDealList(tradingHash) {
         let url = 'deal/list/trading';
         let data = {"tradingHash": tradingHash, "size": 20};
-        let coinRes = await this.$post(url, data);
+        let coinRes = await this.$dexPost(url, data);
         //console.log(coinRes);
         if (!coinRes.success) {
           this.$message({message: '获取最新成交列表:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});

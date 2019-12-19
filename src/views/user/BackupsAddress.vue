@@ -8,10 +8,10 @@
         <p class="info mt_20 mb_20 pt_20">
           {{$t('backupsAddress.backupsAddress1')}}
           <span class="yellow">{{accountAddress.address}}</span>
-           &nbsp;<i class="el-icon-document-copy click" @click="copy(accountAddress.address)"></i>
+          &nbsp;<i class="el-icon-document-copy click" @click="copy(accountAddress.address)"></i>
         </p>
       </div>
-      <div class="tips bg-gray w630">
+      <div class="tips w630">
         <p class="sub_info pl_20"><i></i> {{$t('backupsAddress.backupsAddress2')}}</p>
         <p class="sub_info pl_20"><i></i> {{$t('backupsAddress.backupsAddress3')}}</p>
       </div>
@@ -139,6 +139,7 @@
   @import "./../../assets/css/style";
 
   .backups-address {
+    background-color: #ffffff;
     .bg-white {
       .title {
         margin: 20px auto 10px;
@@ -149,44 +150,44 @@
         }
       }
     }
-    .tab {
-      .address {
-        margin: 20px auto 0;
-        font-size: 18px;
-        @media screen and (max-width: 1024px) {
-          margin: 1rem 0 0 1rem;
-          font-size: 0.8rem;
-        }
+    .address {
+      margin: 20px auto 0;
+      font-size: 18px;
+      @media screen and (max-width: 1024px) {
+        margin: 1rem 0 0 1rem;
+        font-size: 0.8rem;
       }
-      .tips {
-        margin: 40px auto;
-        padding: 20px 30px;
+    }
+    .tips {
+      margin: 40px auto;
+      padding: 20px 30px;
+      background-color: #c0c4cc;
+      @media screen and (max-width: 1024px) {
+        padding: 1rem 0.8rem;
+        width: 100%;
+      }
+      p {
+        line-height: 24px;
         @media screen and (max-width: 1024px) {
-          padding: 1rem 0.8rem;
-          width: 100%;
+          font-size: 0.7rem;
+          word-wrap: break-word;
         }
-        p {
-          line-height: 24px;
-          @media screen and (max-width: 1024px) {
-            font-size: 0.7rem;
-            word-wrap: break-word;
-          }
-          i {
-            width: 5px;
-            height: 5px;
-            display: block;
-            float: left;
-            margin: 9px 10px 0 0;
-            border-radius: 5px;
-            background: #000000;
-          }
+        i {
+          width: 5px;
+          height: 5px;
+          display: block;
+          float: left;
+          margin: 9px 10px 0 0;
+          border-radius: 5px;
+          background: #000000;
         }
       }
     }
-    .btn-next {
-      @media screen and (max-width: 1024px) {
-        width: 100%;
-      }
+  }
+
+  .btn-next {
+    @media screen and (max-width: 1024px) {
+      width: 100%;
     }
   }
 

@@ -318,7 +318,7 @@
        */
       async getTradingInfo(tradingHash) {
         let url = '/coin/trading/get/' + tradingHash;
-        let tradingInfoRes = await this.$get(url);
+        let tradingInfoRes = await this.$dexGet(url);
         //console.log(tradingInfoRes);
         if (!tradingInfoRes.success) {
           this.$message({message: '获取交易对错误:' + JSON.stringify(tradingInfoRes.data), type: 'error', duration: 3000});
@@ -342,7 +342,7 @@
       async getTradingGet(tradingHash) {
         let url = '/view/kLine/list';
         let data = {"tradingHash": tradingHash, "type": 1,};
-        let tradingGetRes = await this.$post(url, data);
+        let tradingGetRes = await this.$dexPost(url, data);
         //console.log(tradingGetRes);
         if (!tradingGetRes.success) {
           this.$message({message: '获取交易对K线图:' + JSON.stringify(TradingInfoRes.data), type: 'error', duration: 3000});

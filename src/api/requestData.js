@@ -22,7 +22,6 @@ export function countCtxFee(tx, signatrueCount) {
   return 1000000 * Math.ceil(txSize / 1024);
 }
 
-
 /**
  * 获取地址信息根据地址
  * @param address
@@ -32,10 +31,10 @@ export async function getAddressInfoByAddress(address) {
   return await post('/', 'getAccount', [address])
     .then((response) => {
       //console.log(response);
-      if (response.hasOwnProperty("result")) {
-        return {success: true, data: response.result}
+      if (response.success) {
+        return {success: true, data: response.data}
       } else {
-        return {success: false, data: response}
+        return {success: false, data: response.data}
       }
     })
     .catch((error) => {

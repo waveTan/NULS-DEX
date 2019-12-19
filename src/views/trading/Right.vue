@@ -98,7 +98,7 @@
       async getOrderList(tradingHash) {
         let url = '/order/list/';
         let data = {"tradingHash": tradingHash, "decimal": 1, "type": 0, "size": 1};
-        let coinRes = await this.$post(url, data);
+        let coinRes = await this.$dexPost(url, data);
         //console.log(coinRes);
         if (!coinRes.success) {
           this.$message({message: '获取交易对挂单错误:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});

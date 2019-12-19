@@ -20,13 +20,16 @@
           <div class="bg-white w1200 mt_100">
             <el-form :model="importForm" :rules="importRules" ref="importForm" status-icon class="import-form w630">
               <el-form-item :label="$t('newAddress.newAddress6')" prop="keys">
-                <el-input type="textarea" v-model.trim="importForm.keys" autocomplete="off"></el-input>
+                <el-input type="textarea" v-model.trim="importForm.keys" autocomplete="off">
+                </el-input>
               </el-form-item>
               <el-form-item :label="$t('newAddress.newAddress7')" prop="pass">
-                <el-input v-model="importForm.pass" type="password" autocomplete="off"></el-input>
+                <el-input v-model="importForm.pass" type="password" autocomplete="off">
+                </el-input>
               </el-form-item>
               <el-form-item :label="$t('newAddress.newAddress8')" prop="checkPass">
-                <el-input v-model="importForm.checkPass" type="password" autocomplete="off"></el-input>
+                <el-input v-model="importForm.checkPass" type="password" autocomplete="off">
+                </el-input>
               </el-form-item>
               <el-form-item class="form-bnt mb_100">
                 <el-button type="success" @click="keyImport('importForm')">{{$t('newAddress.newAddress9')}}</el-button>
@@ -38,14 +41,17 @@
           <el-form :model="newAddressForm" status-icon :rules="newAddressRules" ref="newAddressForm"
                    class="new_address w630">
             <el-form-item :label="$t('newAddress.newAddress7')" prop="pass">
-              <el-input type="password" v-model="newAddressForm.pass" autocomplete="off"></el-input>
+              <el-input type="password" v-model="newAddressForm.pass" autocomplete="off">
+              </el-input>
             </el-form-item>
             <el-form-item :label="$t('newAddress.newAddress8')" prop="checkPass">
-              <el-input type="password" v-model="newAddressForm.checkPass" autocomplete="off"></el-input>
+              <el-input type="password" v-model="newAddressForm.checkPass" autocomplete="off">
+              </el-input>
             </el-form-item>
             <el-form-item label="" prop="agreement" class="agreement">
               <el-checkbox-group v-model="newAddressForm.agreement">
-                <el-checkbox :label="$t('tips.tips10')" name="agreement"></el-checkbox>
+                <el-checkbox :label="$t('tips.tips10')" name="agreement">
+                </el-checkbox>
               </el-checkbox-group>
             </el-form-item>
             <el-form-item class="form-bnt">
@@ -288,6 +294,7 @@
         this.$refs[formName].validate(async (valid) => {
           if (valid) {
             this.newAddressInfo = nuls.newAddress(API_CHAIN_ID, this.newAddressForm.pass, API_PREFIX);
+            console.log(this.newAddressInfo);
             let addressInfo = await getAddressInfoByAddress(this.newAddressInfo.address);
             if (addressInfo.success) {
               let newAdressInfo = {...this.newAddressInfo, ...addressInfo.data};
@@ -295,9 +302,7 @@
               this.toUrl('backupsAddress');
             } else {
               this.$message({
-                message: this.$t('tips.tips6') + addressInfo.data.error.message,
-                type: 'error',
-                duration: 2000
+                message: this.$t('tips.tips6') + JSON.stringify(addressInfo), type: 'error', duration: 3000
               });
             }
 
