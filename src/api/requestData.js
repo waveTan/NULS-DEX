@@ -30,11 +30,33 @@ export function countCtxFee(tx, signatrueCount) {
 export async function getAddressInfoByAddress(address) {
   return await post('/', 'getAccount', [address])
     .then((response) => {
-      //console.log(response);
+      console.log(response);
       if (response.success) {
         return {success: true, data: response.data}
       } else {
         return {success: false, data: response.data}
+      }
+    })
+    .catch((error) => {
+      return {success: false, data: error};
+    });
+}
+
+/**
+ * 获取地址资产信息
+ * @param chainId
+ * @param assetId
+ * @param address
+ * @returns {Promise<any>}
+ */
+export async function getBaseAssetInfo(chainId =2,assetId = 1, address) {
+  return await post('/', 'getAccountBalance', [chainId,assetId, address])
+    .then((response) => {
+      //console.log(response);
+      if (response.success) {
+        return {success: true, data: response.data}
+      } else {
+        return {success: false, data: response}
       }
     })
     .catch((error) => {

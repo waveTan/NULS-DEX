@@ -71,63 +71,65 @@
             <div class="buy_sell">
               <div class="fl buy">
                 <div class="name">
-                  <span class="font14">买入 USDI</span><font class="fr font12">可用: 2365.2365 NULS</font>
+                  <span class="font14">买入 {{tradingInfo.symbol}}</span>
+                  <font class="fr font12">可用: {{accountInfo.balances}} NULS</font>
                 </div>
                 <el-form :model="buyForm" :rules="buyRules" ref="buyForm" class="buy_form" label-width="44px">
                   <el-form-item label="价格">
-                    <el-input v-model="buyForm.name">
+                    <el-input v-model="buyForm.price">
                       <i slot="suffix">NULS</i>
                     </el-input>
                   </el-form-item>
                   <el-form-item label="数量">
-                    <el-input v-model="buyForm.name">
-                      <i slot="suffix">USDI</i>
+                    <el-input v-model="buyForm.num">
+                      <i slot="suffix">{{tradingInfo.symbol}}</i>
                     </el-input>
                   </el-form-item>
                   <el-form-item label="" class="percentage">
-                    <span>25%</span>
-                    <span>50%</span>
-                    <span>75%</span>
-                    <span>100%</span>
+                    <span @click="choiceBuy(0.25)" :class="buySpan===0.25 ? 'is_span' : ''">25%</span>
+                    <span @click="choiceBuy(0.5)" :class="buySpan===0.5 ? 'is_span' : ''">50%</span>
+                    <span @click="choiceBuy(0.75)" :class="buySpan===0.75 ? 'is_span' : ''">75%</span>
+                    <span @click="choiceBuy(1)" :class="buySpan===1 ? 'is_span' : ''">100%</span>
                   </el-form-item>
                   <el-form-item label="金额">
-                    <el-input v-model="buyForm.name">
+                    <el-input v-model="buyForm.amount">
                       <i slot="suffix">NULS</i>
                     </el-input>
                   </el-form-item>
                   <el-form-item>
-                    <el-button type="success" @click="submitForm('buyForm')">买入 USDI</el-button>
+                    <el-button type="success" @click="submitBuyForm('buyForm')">买入 {{tradingInfo.symbol}}</el-button>
                   </el-form-item>
                 </el-form>
               </div>
               <div class="fr sell">
                 <div class="name">
-                  <span class="font14">卖出 USDI</span><font class="fr font12">可用: 2365.2365 NULS</font>
+                  <span class="font14">卖出 {{tradingInfo.symbol}}</span>
+                  <font class="fr font12">可用: {{accountInfo.baseAssetBalances}} {{tradingInfo.symbol}}</font>
                 </div>
-                <el-form :model="buyForm" :rules="buyRules" ref="buyForm" class="buy_form" label-width="44px">
+                <el-form :model="sellForm" :rules="sellRules" ref="sellForm" class="buy_form" label-width="44px">
                   <el-form-item label="价格">
-                    <el-input v-model="buyForm.name">
+                    <el-input v-model="sellForm.price">
                       <i slot="suffix">NULS</i>
                     </el-input>
                   </el-form-item>
                   <el-form-item label="数量">
-                    <el-input v-model="buyForm.name">
-                      <i slot="suffix">USDI</i>
+                    <el-input v-model="sellForm.num">
+                      <i slot="suffix">{{tradingInfo.symbol}}</i>
                     </el-input>
                   </el-form-item>
                   <el-form-item label="" class="percentage">
-                    <span>25%</span>
-                    <span>50%</span>
-                    <span>75%</span>
-                    <span>100%</span>
+                    <span @click="choiceSell(0.25)" :class="sellSpan===0.25 ? 'is_span' : ''">25%</span>
+                    <span @click="choiceSell(0.5)" :class="sellSpan===0.5 ? 'is_span' : ''">50%</span>
+                    <span @click="choiceSell(0.75)" :class="sellSpan===0.75 ? 'is_span' : ''">75%</span>
+                    <span @click="choiceSell(1)" :class="sellSpan===1 ? 'is_span' : ''">100%</span>
                   </el-form-item>
                   <el-form-item label="金额">
-                    <el-input v-model="buyForm.name">
+                    <el-input v-model="sellForm.amount">
                       <i slot="suffix">NULS</i>
                     </el-input>
                   </el-form-item>
                   <el-form-item>
-                    <el-button type="danger" @click="submitForm('buyForm')">卖出 USDI</el-button>
+                    <el-button type="danger" @click="submitSellForm('buyForm')">卖出 {{tradingInfo.symbol}}</el-button>
                   </el-form-item>
                 </el-form>
               </div>
@@ -194,11 +196,13 @@
   import moment from 'moment'
   import Left from '@/views/trading/Left'
   import Right from '@/views/trading/Right'
-  import {divisionDecimals, getLocalTime} from '@/api/util.js'
+  import {divisionDecimals, getLocalTime, Times} from '@/api/util.js'
+  import {getBaseAssetInfo} from '@/api/requestData.js'
 
   export default {
     data() {
       return {
+        accountInfo: '',//账户信息
         tradingInfo: {},//交易对信息
         tradingInfoLoading: false,
         //分钟下拉框
@@ -277,8 +281,11 @@
             {'日期': '2004-02-27', open: 10581.55, close: 10583.92, lowest: 10519.03, highest: 10689.55, vol: 200050000}
           ]
         },
+
         buyForm: {
-          name: ''
+          price: '',
+          num: '',
+          amount: '',
         },
         buyRules: {
           name: [
@@ -286,13 +293,33 @@
             {min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'blur'}
           ],
         },
+        buySpan: 0,
+
+        sellForm: {
+          price: '',
+          num: '',
+          amount: '',
+        },
+        sellRules: {
+          name: [
+            {required: true, message: '请输入活动名称', trigger: 'blur'},
+            {min: 3, max: 5, message: '长度在 3 到 5 个字符', trigger: 'blur'}
+          ],
+        },
+        sellSpan: 0,
 
         entrustData: [],//当前委托列表
       };
     },
     created() {
+      this.accountInfo = localStorage.hasOwnProperty('accountInfo') ? JSON.parse(localStorage.getItem('accountInfo')) : {};
       this.tradingInfo = this.$store.getters.getDealData;
       this.getTradingGet(this.tradingInfo.hash);
+    },
+    mounted() {
+      if (this.accountInfo) {
+        this.accountInfo.balances = Number(divisionDecimals(this.accountInfo.balance, 8)).toFixed(3);
+      }
     },
     components: {Left, Right},
     computed: {
@@ -306,6 +333,14 @@
         this.getTradingInfo(this.tradingInfo.hash);
         this.getTradingGet(this.tradingInfo.hash);
         this.tradingInfoLoading = true;
+
+        this.buySpan = 0;
+        this.buyForm.num = '';
+        this.buyForm.amount = '';
+
+        this.sellSpan = 0;
+        this.sellForm.num = '';
+        this.sellForm.amount = ''
       }
     },
     methods: {
@@ -329,7 +364,24 @@
         tradingInfoRes.result.highPrice24s = divisionDecimals(tradingInfoRes.result.highPrice24, tradingInfoRes.result.baseDecimal);
         tradingInfoRes.result.lowPrice24s = divisionDecimals(tradingInfoRes.result.lowPrice24, tradingInfoRes.result.baseDecimal);
         tradingInfoRes.result.dealAmount24s = divisionDecimals(tradingInfoRes.result.dealAmount24, tradingInfoRes.result.baseDecimal);
+        tradingInfoRes.result.symbol = tradingInfoRes.result.tradingName.substring(0, tradingInfoRes.result.tradingName.length - 5);
         this.tradingInfo = tradingInfoRes.result;
+        this.buyForm.price = tradingInfoRes.result.newPrices;
+        this.sellForm.price = tradingInfoRes.result.newPrices;
+
+        let baseAssetByAddress = await getBaseAssetInfo(this.tradingInfo.baseAssetChainId, this.tradingInfo.baseAssetId, this.accountInfo.address);
+        if (!baseAssetByAddress.success) {
+          this.$message({
+            message: '获取资产信息错误:' + JSON.stringify(baseAssetByAddress.data),
+            type: 'error',
+            duration: 3000
+          });
+          return;
+        }
+        baseAssetByAddress.data.balances = divisionDecimals(baseAssetByAddress.data.balance, 8);
+        this.accountInfo.baseAssetBalances = baseAssetByAddress.data.balances;
+        console.log(baseAssetByAddress);
+
         this.tradingInfoLoading = false;
       },
 
@@ -358,6 +410,68 @@
         }
         this.chartData.rows = tradingGetRes.result
       },
+
+      /**
+       * @disc: 选择买百分比
+       * @params: number
+       * @date: 2019-12-20 10:52
+       * @author: Wave
+       */
+      choiceBuy(number) {
+        this.buySpan = number;
+        this.buyForm.amount = Times(Number(this.accountInfo.balances), number);
+        this.buyForm.num = Times(Number(this.buyForm.amount), Number(this.buyForm.price));
+      },
+
+      /**
+       * @disc: 买 交易对提交
+       * @params: formName
+       * @date: 2019-12-20 11:25
+       * @author: Wave
+       */
+      submitBuyForm(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            console.log(Number(this.buyForm.price));
+            console.log(Number(this.buyForm.num));
+            console.log(Number(this.buyForm.amount));
+          } else {
+            return false;
+          }
+        });
+      },
+
+      /**
+       * @disc: 选择卖百分比
+       * @params: number
+       * @date: 2019-12-20 10:52
+       * @author: Wave
+       */
+      choiceSell(number) {
+        this.sellSpan = number;
+        this.sellForm.amount = Times(Number(this.accountInfo.balances), number);
+        this.sellForm.num = Times(Number(this.sellForm.amount), Number(this.sellForm.price));
+      },
+
+      /**
+       * @disc: 卖 交易对提交
+       * @params: formName
+       * @date: 2019-12-20 11:25
+       * @author: Wave
+       */
+      submitSellForm(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            console.log(Number(this.sellForm.price));
+            console.log(Number(this.sellForm.num));
+            console.log(Number(this.sellForm.amount));
+          } else {
+            return false;
+          }
+        });
+      },
+
+
     }
   }
 </script>
@@ -572,6 +686,10 @@
                         margin: 0;
                       }
                     }
+                    .is_span {
+                      color: #06ba63;
+                      border: 1px solid #06ba63;
+                    }
                   }
 
                 }
@@ -597,6 +715,10 @@
                         color: #db4355;
                         border-color: #db4355;
                       }
+                    }
+                    .is_span{
+                      color: #db4355;
+                      border: 1px solid #db4355;
                     }
                   }
                 }
