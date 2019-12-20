@@ -97,20 +97,20 @@
        */
       async getOrderList(tradingHash) {
         let url = '/order/list/';
-        let data = {"tradingHash": tradingHash, "decimal": 1, "type": 0, "size": 1};
+        let data = {"tradingHash": tradingHash, "decimal": 2, "type": 0, "size": 20};
         let coinRes = await this.$dexPost(url, data);
         //console.log(coinRes);
         if (!coinRes.success) {
           this.$message({message: '获取交易对挂单错误:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});
         }
         for (let item of coinRes.result.buyOrderList) {
-          item.prices = Number(divisionDecimals(item.price, item.quoteDecimal)).toFixed(3);
+          item.prices = Number(divisionDecimals(item.price, item.quoteDecimal));
           item.number = Number(divisionDecimals(item.quoteAmount, item.quoteDecimal)).toFixed(3);
           item.amount = Number(divisionDecimals(item.baseAmount, item.baseDecimal)).toFixed(3);
         }
 
         for (let item of coinRes.result.sellOrderList) {
-          item.prices = Number(divisionDecimals(item.price, item.quoteDecimal)).toFixed(3);
+          item.prices = Number(divisionDecimals(item.price, item.quoteDecimal));
           item.number = Number(divisionDecimals(item.quoteAmount, item.quoteDecimal)).toFixed(3);
           item.amount = Number(divisionDecimals(item.baseAmount, item.baseDecimal)).toFixed(3);
         }

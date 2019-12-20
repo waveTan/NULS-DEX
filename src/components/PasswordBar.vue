@@ -34,7 +34,7 @@
       return {
         passwordVisible: false,
         passwordForm: {
-          password: '',
+          password: 'nuls123456',
         },
         passwordRules: {
           password: [
