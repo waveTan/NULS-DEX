@@ -13,7 +13,6 @@ export const API_CHAIN_ID = 2;
 //链前缀
 export const API_PREFIX = 'tNULS';
 //api正式、测试网络的api
-//export let API_URL = IS_DEV ? 'https://beta.wallet.nuls.io/api' : 'https://beta.wallet.nuls.io/api';
 export let API_URL = IS_DEV ? 'https://beta.wallet.nuls.io/api' : 'http://192.168.1.160:18003';
 //dex 网络api
 export let DEX_URL = IS_DEV ? 'http://192.168.1.160:8081' : 'http://192.168.1.160:8081';
