@@ -57,10 +57,10 @@
       async addressInfoByAddress(address) {
         let newData = {aesPri: this.accountInfo.aesPri, pub: this.accountInfo.pub};
         let newAddressInfo = await getAddressInfoByAddress(address);
-        console.log(newAddressInfo);
+        //console.log(newAddressInfo);
         if (newAddressInfo.success) {
           this.accountInfo = {};
-          newAddressInfo.data.balance = divisionDecimals(newAddressInfo.data.balance);
+          newAddressInfo.data.balance = divisionDecimals(newAddressInfo.data.balance,8);
           this.accountInfo = {...newData, ...newAddressInfo.data};
         } else {
           this.accountInfo.balance = 0
@@ -121,7 +121,6 @@
         }
       }
     }
-
     .address {
       span {
         color: #17202e;

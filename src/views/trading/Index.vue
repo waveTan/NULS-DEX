@@ -177,8 +177,9 @@
             </el-table-column>
             <el-table-column prop="price" align="center" label="已成交总额" width="110">
             </el-table-column>
-            <el-table-column prop="price" align="center" label="操作" width="110">
-              <template slot-scope="scope">
+            <el-table-column align="center" label="操作" width="110">
+              <!--<template slot-scope="scope">-->
+              <template>
                 <el-link type="primary">撤销</el-link>
               </template>
             </el-table-column>
@@ -284,6 +285,7 @@
     created() {
       this.accountInfo = localStorage.hasOwnProperty('accountInfo') ? JSON.parse(localStorage.getItem('accountInfo')) : {};
       this.tradingInfo = this.$store.getters.getDealData;
+      this.getTradingInfo(this.tradingInfo.hash);
       this.getTradingGet(this.tradingInfo.hash);
     },
     mounted() {
@@ -312,8 +314,8 @@
         this.sellForm.num = '';
         this.sellForm.amount = ''
       },
-      'buyForm.num': function (newVal, oldVal) {
-        //console.log(newVal, oldVal);
+      'buyForm.num': function () {
+       // console.log(newVal, oldVal);
         this.buyForm.amount = Times(this.buyForm.num, this.buyForm.price);
         // 解决数字键盘可以输入输入多个小数点问题
         /*if (newVal === '' && oldVal.toString().indexOf('.') > 0) {
@@ -321,7 +323,7 @@
           return;
         }*/
       },
-      'sellForm.num': function (newVal, oldVal) {
+      'sellForm.num': function () {
         //console.log(newVal, oldVal);
         this.sellForm.amount = Times(this.sellForm.num, this.sellForm.price);
         // 解决数字键盘可以输入输入多个小数点问题
@@ -356,8 +358,8 @@
         this.tradingInfo = tradingInfoRes.result;
         this.buyForm.price = tradingInfoRes.result.newPrices;
         this.sellForm.price = tradingInfoRes.result.newPrices;
-
         let quoteAssetByAddress = await getBaseAssetInfo(this.tradingInfo.quoteAssetChainId, this.tradingInfo.quoteAssetId, this.accountInfo.address);
+        //console.log(quoteAssetByAddress);
         if (!quoteAssetByAddress.success) {
           this.$message({
             message: '获取资产信息错误:' + JSON.stringify(quoteAssetByAddress.data),
@@ -398,7 +400,7 @@
         let tradingGetRes = await this.$dexPost(url, data);
         //console.log(tradingGetRes);
         if (!tradingGetRes.success) {
-          this.$message({message: '获取交易对K线图:' + JSON.stringify(TradingInfoRes.data), type: 'error', duration: 3000});
+          this.$message({message: '获取交易对K线图:' + JSON.stringify(tradingGetRes.data), type: 'error', duration: 3000});
           return;
         }
         for (let item of tradingGetRes.result) {
@@ -466,9 +468,9 @@
           amount: Number(timesDecimals(amount, this.orderType === 1 ? this.tradingInfo.quoteDecimal : this.tradingInfo.baseDecimal)),   //挂单金额
           price: Number(timesDecimals(price, this.orderType === 1 ? this.tradingInfo.quoteDecimal : this.tradingInfo.baseDecimal))  //单价
         };
-        console.log(defaultAsset);
-        console.log(tradingOrderInfo);
-        console.log(addressInfo);
+        //console.log(defaultAsset);
+        //console.log(tradingOrderInfo);
+        //console.log(addressInfo);
         let txHex = await this.tradingOrder(tradingOrderInfo, defaultAsset, addressInfo);
         if (!txHex.success) {
           this.$message({message: '交易签名错误:' + JSON.stringify(txHex.data), type: 'error', duration: 3000});
@@ -476,7 +478,7 @@
         }
         //console.log(txHex.data);
         let broadcastResult = await validateAndBroadcast(txHex.data);
-        console.log(broadcastResult);
+        //console.log(broadcastResult);
 
         if (!broadcastResult.success) {
           this.$message({message: '交易广播失败:' + JSON.stringify(broadcastResult.data), type: 'error', duration: 3000});
@@ -524,6 +526,7 @@
       async tradingOrder(tradingOrderInfo, defaultAsset, addressInfo) {
         let remark = '';
         let inOrOutputs = await this.createCoinData(tradingOrderInfo, defaultAsset);
+        console.log(inOrOutputs);
         if (!inOrOutputs.success) {
           this.$message({message: '买卖交易组装错误:' + JSON.stringify(inOrOutputs.data), type: 'error', duration: 3000});
           return;
@@ -542,7 +545,7 @@
         let signData = await sdk.appSplicingPub(txSignature.signValue, addressInfo.pub);
         tAssemble.signatures = signData;
         let txhex = tAssemble.txSerialize().toString("hex");
-        console.log(txhex.toString('hex'));
+        //console.log(txhex.toString('hex'));
         return {success: true, data: txhex};
       },
 
@@ -569,14 +572,12 @@
           nonce: balanceInfo.data.nonce
         };
         //判断用户的挂单委托资产是否是本链的默认资产
-        console.log(tradingOrderInfo.assetsChainId, defaultAsset.assetsChainId, tradingOrderInfo.assetsId, defaultAsset.assetsId);
-        console.log(tradingOrderInfo.assetsChainId === defaultAsset.assetsChainId && tradingOrderInfo.assetsId === defaultAsset.assetsId);
         if (tradingOrderInfo.assetsChainId === defaultAsset.assetsChainId && tradingOrderInfo.assetsId === defaultAsset.assetsId) {
           //如果是，生成input的时候，将委托金额和手续费一起收
           input.amount += fee;
           inputs.push(input);
-        } else {
-          //如果不是要额外收取手续费
+        } else { //如果不是要额外收取手续费
+
           inputs.push(input);
           const balanceInfo = await getBaseAssetInfo(defaultAsset.assetsChainId, defaultAsset.assetsId, tradingOrderInfo.address);
           if (!balanceInfo.success) {
@@ -585,8 +586,8 @@
           }
           inputs.push({
             address: tradingOrderInfo.address,
-            assetsChainId: tradingOrderInfo.assetsChainId,
-            assetsId: tradingOrderInfo.assetsId,
+            assetsChainId: defaultAsset.assetsChainId,
+            assetsId: defaultAsset.assetsId,
             amount: fee,
             locked: 0,
             nonce: balanceInfo.data.nonce
