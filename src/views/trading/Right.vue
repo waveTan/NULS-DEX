@@ -18,10 +18,10 @@
     <div class="buy table cb" v-show="coinOrderValue ===0 || coinOrderValue ===1">
       <div class="t_th">
         <div class="t_td" style="width: 120px; padding-left: 10px">价格(NULS)</div>
-        <div class="t_td" style="width: 70px;">数量(USDI)</div>
+        <div class="t_td" style="width: 70px;">数量({{tradingInfo.symbol}})</div>
         <div class="t_td" style="width: 110px;">成交额(NULS)</div>
       </div>
-      <div class="t_tr cb" v-for="(item,index) in buyData" :key="index" v-loading="orderListLoading">
+      <div class="t_tr cb" v-for="(item,index) in sellData" :key="index" v-loading="orderListLoading">
         <div class="t_td" style="width: 120px; color:#7a2e3c;padding-left: 10px">{{item.prices}}</div>
         <div class="t_td" style="width: 70px;">{{item.number}}</div>
         <div class="t_td" style="width: 60px;">{{item.amount}}</div>
@@ -35,10 +35,10 @@
     <div class="sell table cb" v-show="coinOrderValue ===0 || coinOrderValue ===2">
       <div class="t_th" v-show="coinOrderValue ===0 || coinOrderValue ===2">
         <div class="t_td" style="width: 120px;padding-left: 10px">价格(NULS)</div>
-        <div class="t_td" style="width: 70px;">数量(USDI)</div>
+        <div class="t_td" style="width: 70px;">数量({{tradingInfo.symbol}})</div>
         <div class="t_td" style="width: 110px;">成交额(NULS)</div>
       </div>
-      <div class="t_tr cb" v-for="(item,index) in sellData" :key="index" v-loading="orderListLoading">
+      <div class="t_tr cb" v-for="(item,index) in buyData" :key="index" v-loading="orderListLoading">
         <div class="t_td" style="width: 120px; color:#06ba63;padding-left: 10px">{{item.prices}}</div>
         <div class="t_td" style="width: 70px;">{{item.number}}</div>
         <div class="t_td" style="width: 60px;">{{item.amount}}</div>
@@ -48,12 +48,13 @@
 </template>
 
 <script>
-  import {divisionDecimals} from '@/api/util.js'
+  import {divisionDecimals,Times,Division} from '@/api/util.js'
 
   export default {
     name: "right",
     data() {
       return {
+        tradingInfo: {},//交易对信息
         coinOrderValue: 0,//交易对订单0：买卖各一半，1：买，2：卖
         buyData: [],//买列表
         sellData: [],//卖列表
@@ -73,6 +74,7 @@
     watch: {
       tradingName: function () {
         this.tradingInfo = this.$store.getters.getDealData;
+        this.tradingInfo.symbol = this.tradingInfo.tradingName.substring(0, this.tradingInfo.tradingName.length - 5);
         this.getOrderList(this.tradingInfo.hash);
         this.orderListLoading = true;
       }
@@ -105,14 +107,13 @@
         }
         for (let item of coinRes.result.buyOrderList) {
           item.prices = Number(divisionDecimals(item.price, item.quoteDecimal));
-          item.number = Number(divisionDecimals(item.quoteAmount, item.quoteDecimal)).toFixed(3);
-          item.amount = Number(divisionDecimals(item.baseAmount, item.baseDecimal)).toFixed(3);
+          item.number= Number(Division(item.quoteAmount, item.price));
+          item.amount = Number(Times(item.prices, item.number));
         }
-
         for (let item of coinRes.result.sellOrderList) {
           item.prices = Number(divisionDecimals(item.price, item.quoteDecimal));
-          item.number = Number(divisionDecimals(item.quoteAmount, item.quoteDecimal)).toFixed(3);
-          item.amount = Number(divisionDecimals(item.baseAmount, item.baseDecimal)).toFixed(3);
+          item.number = Number(divisionDecimals(item.baseAmount, item.baseDecimal));
+          item.amount = Number(Times(item.prices, item.number));
         }
         this.buyData = coinRes.result.buyOrderList;
         this.sellData = coinRes.result.sellOrderList;

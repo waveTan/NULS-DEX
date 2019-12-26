@@ -58,6 +58,9 @@ export function Plus(nu, arg) {
  * @constructor
  */
 export function Division(nu, arg) {
+  if (Number(nu) === 0 || Number(arg) === 0) {
+    return 0;
+  }
   let newDiv = new BigNumber(nu);
   return newDiv.div(arg);
 }
@@ -82,6 +85,9 @@ export function divisionDecimals(nu, decimals = 8) {
  * @constructor
  */
 export function timesDecimals(nu, decimals = 8) {
+  if (Number(nu) === 0) {
+    return 0;
+  }
   let newNu = new BigNumber(Times(nu, Power(decimals)).toString());
   return Number(newNu);
 }
@@ -104,7 +110,7 @@ export function passwordVerification(accountInfo, password) {
   const pri = nuls.decrypteOfAES(aesPri, password);
   const newAddressInfo = nuls.importByKey(API_CHAIN_ID, pri, password, API_PREFIX);
   if (newAddressInfo.address === accountInfo.address) {
-    return {success: true, pri: pri, pub: accountInfo.pub, address: accountInfo.address,aesPri:newAddressInfo.aesPri};
+    return {success: true, pri: pri, pub: accountInfo.pub, address: accountInfo.address, aesPri: newAddressInfo.aesPri};
   } else {
     return {success: false};
   }

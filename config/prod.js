@@ -14,7 +14,7 @@ export const API_CHAIN_ID = 1;
 //链前缀
 export const API_PREFIX = 'NULS';
 //api正式、测试网络的api
-export let API_URL = IS_DEV ? 'https://public1.nuls.io' : 'https://public1.nuls.io';
+export let API_URL = IS_DEV ? 'https://public1.nuls.io' : 'http://192.168.1.160:18004/jsonrpc';
 //dex 网络api
 export let DEX_URL = IS_DEV ? 'http://192.168.1.160:8081' : 'http://192.168.1.160:8081';
 //请求最迟时间

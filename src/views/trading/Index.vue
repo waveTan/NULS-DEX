@@ -154,33 +154,36 @@
           <font class="fr fwhite">全部订单<i class="el-icon-d-arrow-right"></i></font>
         </div>
         <div class="table cb">
-          <el-table :data="entrustData" stripe style="width: 100%">
-            <el-table-column prop="hash" align="center" label="交易hash" min-width="100">
+          <el-table :data="entrustData" stripe style="width: 100%" class="entrust">
+            <el-table-column prop="hashs" align="center" label="交易hash" min-width="100">
             </el-table-column>
-            <el-table-column prop="time" align="center" label="时间" width="110">
+            <el-table-column prop="time" align="center" label="时间" width="160">
             </el-table-column>
-            <el-table-column prop="counterparty" align="center" label="交易对" width="110">
+            <el-table-column prop="tradingName" align="center" label="交易对" width="110">
             </el-table-column>
-            <el-table-column prop="price" align="center" label="方向" width="110">
+            <el-table-column align="center" label="方向" width="110">
+              <template slot-scope="scope">
+                <span>{{scope.row.type ===1 ? '买单':'卖单'}}</span>
+              </template>
             </el-table-column>
             <el-table-column prop="price" align="center" label="单价" width="110">
             </el-table-column>
-            <el-table-column prop="price" align="center" label="数量" width="110">
+            <el-table-column prop="number" align="center" label="数量" width="110">
             </el-table-column>
-            <el-table-column prop="price" align="center" label="总额" width="110">
+            <el-table-column prop="totalAmount" align="center" label="总额" width="110">
             </el-table-column>
-            <el-table-column prop="price" align="center" label="已成交数量" width="110">
+            <el-table-column align="center" label="成交率" width="110">
+              <template slot-scope="scope">
+                <span>{{Number(scope.row.ratio*100).toFixed(2)}}%</span>
+              </template>
             </el-table-column>
-            <el-table-column prop="price" align="center" label="成交率" width="110">
+            <el-table-column prop="dealNumber" align="center" label="已成交总数" width="110">
             </el-table-column>
-            <el-table-column prop="price" align="center" label="已成交总额" width="110">
-            </el-table-column>
-            <el-table-column prop="price" align="center" label="已成交总额" width="110">
+            <el-table-column prop="dealTotalAmount" align="center" label="已成交总额" width="110">
             </el-table-column>
             <el-table-column align="center" label="操作" width="110">
-              <!--<template slot-scope="scope">-->
-              <template>
-                <el-link type="primary">撤销</el-link>
+              <template slot-scope="scope">
+                <el-link type="primary" class="font12">撤销</el-link>
               </template>
             </el-table-column>
           </el-table>
@@ -202,7 +205,15 @@
   import LeftBar from '@/views/trading/Left'
   import RightBar from '@/views/trading/Right'
   import Password from '@/components/PasswordBar'
-  import {divisionDecimals, getLocalTime, Times, timesDecimals, passwordVerification} from '@/api/util.js'
+  import {
+    divisionDecimals,
+    getLocalTime,
+    Times,
+    timesDecimals,
+    passwordVerification,
+    superLong,
+    Division
+  } from '@/api/util.js'
   import {getBaseAssetInfo, validateAndBroadcast} from '@/api/requestData.js'
 
   export default {
@@ -280,6 +291,9 @@
         sellSpan: 0,
 
         entrustData: [],//当前委托列表
+        pageIndex: 1, //页码
+        pageSize: 10, //每页条数
+        pageTotal: 0,//总页数
       };
     },
     created() {
@@ -291,6 +305,7 @@
     mounted() {
       if (this.accountInfo) {
         this.accountInfo.balances = Number(divisionDecimals(this.accountInfo.balance, 8)).toFixed(3);
+        this.getEntrustList(this.accountInfo.address, this.pageIndex, this.pageSize);
       }
     },
     components: {LeftBar, RightBar, Password},
@@ -315,7 +330,7 @@
         this.sellForm.amount = ''
       },
       'buyForm.num': function () {
-       // console.log(newVal, oldVal);
+        // console.log(newVal, oldVal);
         this.buyForm.amount = Times(this.buyForm.num, this.buyForm.price);
         // 解决数字键盘可以输入输入多个小数点问题
         /*if (newVal === '' && oldVal.toString().indexOf('.') > 0) {
@@ -457,7 +472,7 @@
         }
         let addressInfo = {pri: passwordInfo.pri, pub: passwordInfo.pub, type: 29};
         let defaultAsset = {assetsChainId: 2, assetsId: 1};
-        let amount = this.orderType === 1 ? this.buyForm.amount : this.sellForm.amount;
+        let amount = this.orderType === 1 ? this.buyForm.amount : this.sellForm.num;
         let price = this.orderType === 1 ? this.buyForm.price : this.sellForm.price;
         let tradingOrderInfo = {
           tradingHash: this.tradingInfo.hash,    //委托挂单hash
@@ -468,9 +483,7 @@
           amount: Number(timesDecimals(amount, this.orderType === 1 ? this.tradingInfo.quoteDecimal : this.tradingInfo.baseDecimal)),   //挂单金额
           price: Number(timesDecimals(price, this.orderType === 1 ? this.tradingInfo.quoteDecimal : this.tradingInfo.baseDecimal))  //单价
         };
-        //console.log(defaultAsset);
         //console.log(tradingOrderInfo);
-        //console.log(addressInfo);
         let txHex = await this.tradingOrder(tradingOrderInfo, defaultAsset, addressInfo);
         if (!txHex.success) {
           this.$message({message: '交易签名错误:' + JSON.stringify(txHex.data), type: 'error', duration: 3000});
@@ -526,7 +539,7 @@
       async tradingOrder(tradingOrderInfo, defaultAsset, addressInfo) {
         let remark = '';
         let inOrOutputs = await this.createCoinData(tradingOrderInfo, defaultAsset);
-        console.log(inOrOutputs);
+        //console.log(inOrOutputs);
         if (!inOrOutputs.success) {
           this.$message({message: '买卖交易组装错误:' + JSON.stringify(inOrOutputs.data), type: 'error', duration: 3000});
           return;
@@ -601,7 +614,41 @@
           lockTime: -2
         });
         return {success: true, data: {inputs: inputs, outputs: outputs}};
-      }
+      },
+
+      /**
+       * @disc: 获取地址当前委托列表
+       * @params: address
+       * @params: pageIndex
+       * @params: pageSize
+       * @date: 2019-12-16 10:41
+       * @author: Wave
+       */
+      async getEntrustList(address, pageIndex, pageSize) {
+        let url = '/order/list/address';
+        let data = {"address": address, "pageNumber": pageIndex, "pageSize": pageSize};
+        let entrustListRes = await this.$dexPost(url, data);
+        //console.log(entrustListRes);
+        if (!entrustListRes.success) {
+          this.$message({
+            message: '获取地址当前委托列表错误:' + JSON.stringify(entrustListRes.data),
+            type: 'error',
+            duration: 3000
+          });
+          return;
+        }
+        for (let item of entrustListRes.result.list) {
+          item.hashs = superLong(item.hash, 8);
+          item.time = moment(getLocalTime(item.createTime)).format('YYYY-MM-DD HH:mm:ss');
+          item.price = Number(divisionDecimals(item.price, item.baseDecimal));
+          item.number = Number(divisionDecimals(item.baseAmount, item.baseDecimal));
+          item.totalAmount = Number(Times(item.price, item.number));
+          item.dealNumber = Number(divisionDecimals(item.baseDealAmount, item.baseDecimal));
+          item.dealTotalAmount = Number(Times(item.price, item.dealNumber));
+          item.ratio = Number(Division(Number(item.dealNumber), Number(item.number))).toFixed(4);
+        }
+        this.entrustData = entrustListRes.result.list
+      },
 
     }
   }
@@ -880,6 +927,9 @@
         .fr {
           padding: 0 10px 0 0;
         }
+      }
+      .entrust .el-table__body tr:hover > td {
+        background-color: #1c1e23;
       }
     }
   }
