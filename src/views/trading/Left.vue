@@ -88,6 +88,9 @@
       this.getCoinList(this.coinValue);
     },
     mounted() {
+      setInterval(() => {
+        this.getCoinList(this.coinValue);
+      }, 10000);
     },
     components: {},
     methods: {

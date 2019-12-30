@@ -48,7 +48,7 @@
 </template>
 
 <script>
-  import {divisionDecimals,Times,Division} from '@/api/util.js'
+  import {divisionDecimals, Times, Division} from '@/api/util.js'
 
   export default {
     name: "right",
@@ -64,6 +64,12 @@
     },
     created() {
       this.getOrderList(this.$store.getters.getDealData.hash);
+    },
+    mounted() {
+      let _this = this;
+      setInterval(() => {
+        _this.getOrderList(_this.$store.getters.getDealData.hash);
+      }, 10000);
     },
     components: {},
     computed: {
@@ -106,9 +112,10 @@
           this.$message({message: '获取交易对挂单错误:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});
         }
         for (let item of coinRes.result.buyOrderList) {
+          //console.log(item);
           item.prices = Number(divisionDecimals(item.price, item.quoteDecimal));
-          item.number= Number(Division(item.quoteAmount, item.price));
-          item.amount = Number(Times(item.prices, item.number));
+          item.number = Number(Division(item.quoteAmount, item.price)).toFixed(9);
+          item.amount = Number(Times(item.prices, item.number)).toFixed(8);
         }
         for (let item of coinRes.result.sellOrderList) {
           item.prices = Number(divisionDecimals(item.price, item.quoteDecimal));
