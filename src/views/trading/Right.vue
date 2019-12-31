@@ -113,14 +113,14 @@
         }
         for (let item of coinRes.result.buyOrderList) {
           //console.log(item);
-          item.prices = Number(divisionDecimals(item.price, item.quoteDecimal));
-          item.number = Number(Division(item.quoteAmount, item.price)).toFixed(9);
-          item.amount = Number(Times(item.prices, item.number)).toFixed(8);
+          item.prices = Number(divisionDecimals(item.price, item.quoteDecimal)).toFixed(5);
+          item.number = Number(Division(item.quoteAmount, item.price)).toFixed(5);
+          item.amount = Number(Times(item.prices, item.number)).toFixed(5);
         }
         for (let item of coinRes.result.sellOrderList) {
-          item.prices = Number(divisionDecimals(item.price, item.quoteDecimal));
-          item.number = Number(divisionDecimals(item.baseAmount, item.baseDecimal));
-          item.amount = Number(Times(item.prices, item.number));
+          item.prices = Number(divisionDecimals(item.price, item.quoteDecimal)).toFixed(5);
+          item.number = Number(divisionDecimals(item.baseAmount, item.baseDecimal)).toFixed(5);
+          item.amount = Number(Times(item.prices, item.number)).toFixed(5);
         }
         this.buyData = coinRes.result.buyOrderList;
         this.sellData = coinRes.result.sellOrderList;

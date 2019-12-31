@@ -283,7 +283,7 @@
         }, 10000);
       }
     },
-    components: {LeftBar,ChartBar, RightBar, Password},
+    components: {LeftBar, ChartBar, RightBar, Password},
     computed: {
       tradingName() {
         return this.$store.getters.getDealData.tradingName
@@ -323,7 +323,6 @@
       },
       'sellForm.price': function () {
         this.sellForm.amount = Times(this.sellForm.num, this.sellForm.price).toFixed(9).toString();
-        console.log(this.sellForm.amount)
         // 解决数字键盘可以输入输入多个小数点问题
         /*if (newVal === '' && oldVal.toString().indexOf('.') > 0) {
           this.buyForm.num = oldVal;
