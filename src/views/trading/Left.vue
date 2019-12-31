@@ -36,7 +36,7 @@
           </div>
           <div class="t_td" style="width: 120px;">{{item.tradingName}}</div>
           <div class="t_td" style="width: 70px;">{{item.newPrices}}</div>
-          <div class="t_td" style="width: 60px;">{{item.upsDowns}}%</div>
+          <div class="t_td" style="width: 60px;">{{Number(item.upsDowns).toFixed(2)}}%</div>
         </div>
       </div>
 
@@ -89,7 +89,7 @@
     },
     mounted() {
       setInterval(() => {
-        this.getCoinList(this.coinValue);
+        //this.getCoinList(this.coinValue);
       }, 10000);
     },
     components: {},
@@ -142,13 +142,13 @@
 
       /**
        * @disc: 选择交易对
-       * @params: item
+       * @params: trading
        * @date: 2019-12-19 10:47
        * @author: Wave
        */
-      choiceDeal(item) {
-        this.$store.commit('setDealData', item);
-        this.getDealList(item.hash)
+      choiceDeal(trading) {
+        this.$store.commit('setDealData', trading);
+        this.getDealList(trading.hash)
       },
 
       /**

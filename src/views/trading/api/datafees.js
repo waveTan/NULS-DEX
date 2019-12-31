@@ -1,15 +1,16 @@
 import dataUpdater from './dataUpdater';
-import { initSymbolInfo, defaultSymbol, defaultConfiguration } from './initData';
+import {initSymbolInfo, defaultSymbol, defaultConfiguration} from './initData';
 
 class datafeeds {
+
   constructor(self) {
     this.self = self;
-    this.currentsymbolinfo = null;
     this.barsUpdater = new dataUpdater(this);
   }
+
   /**
    * @description 提供填充配置数据的对象
-   * @param {*Function} callback  回调函数
+   * @param  callback 回调函数
    */
   onReady(callback) {
     return new Promise((resolve) => {
@@ -22,6 +23,7 @@ class datafeeds {
       return callback(data);
     });
   }
+
   /**
    * @description 通过商品名称解析商品信息
    * @param {String} symbolName 商品名
@@ -42,20 +44,22 @@ class datafeeds {
       onResolveErrorCallback(err);
     });
   }
+
   /**
    * @description 通过日期范围获取历史K线数据。图表库希望通过onHistoryCallback仅一次调用，接收所有的请求历史。而不是被多次调用。
-   * @param {*Object} symbolInfo  商品信息对象
-   * @param {*String} resolution  分辨率
-   * @param {*Number} from  最左边请求的K线时间戳
-   * @param {*Number} to  最右边请求的K线时间戳
-   * @param {*Function} onHistoryCallback  回调函数
+   * @param  symbolInfo  商品信息对象
+   * @param  resolution  分辨率
+   * @param  from  最左边请求的K线时间戳
+   * @param  to  最右边请求的K线时间戳
+   * @param  onHistoryCallback  回调函数
    */
   getBars(symbolInfo, resolution, from, to, onHistoryCallback) {
     const onLoadedCallback = data => {
-      data && data.length ? onHistoryCallback(data, { noData: false }) : onHistoryCallback([], { noData: true })
-    }
+      data && data.length ? onHistoryCallback(data, {noData: false}) : onHistoryCallback([], {noData: true})
+    };
     this.self.getBars(symbolInfo, resolution, from, to, onLoadedCallback);
   }
+
   /**
    * @description 订阅K线数据, 图表库将调用onRealtimeCallback方法以更新实时数据
    * @param {*} symbolInfo  商品信息对象
@@ -68,6 +72,7 @@ class datafeeds {
     console.log('订阅K线数据............');
     this.barsUpdater.subscribeBars(symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback);
   }
+
   /**
    * @description 取消订阅K线数据
    * @param {String} subscriberUID
@@ -86,12 +91,14 @@ class datafeeds {
       return;
     }
   }
+
   /**
    * @description 修改默认配置
    */
   defaultConfiguration() {
     defaultConfiguration();
   }
+
   /**
    * @description 修改默认商品信息
    */
@@ -99,4 +106,5 @@ class datafeeds {
     defaultSymbol(symbol);
   }
 }
+
 export default datafeeds;

@@ -1,5 +1,5 @@
 /**
- * 
+ *
  * @param {*} theme 主题：
  * white(日间模式) black(夜间模式) mobile(移动端模式)
  */
@@ -41,7 +41,7 @@ export function getOverrides(theme = 'black') { //Widget对象的默认属性进
       areadown: "rgba(71, 78, 112, 0.02)",
       showLegend: !0
     }
-  }
+  };
   const t = themes[theme];
   return {
     "volumePaneSize": "medium",  //支持的值: large, medium, small, tiny
@@ -100,8 +100,8 @@ export function getOverrides(theme = 'black') { //Widget对象的默认属性进
 }
 
 /**
- * 
- * @param {*} theme 
+ *
+ * @param {*} theme
  * white(日间模式) black(夜间模式) mobile(移动端模式)
  */
 export function getStudiesOverrides(theme = 'black') { //自定义默认指标的样式及输入值

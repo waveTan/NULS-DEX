@@ -23,7 +23,8 @@ export const initSymbolInfo = (symbol, pricescale) => {
     // TODO: 新增属性
     'has_weekly_and_monthly': true
   };
-}
+};
+
 /**
  * @description 修改默认商品信息
  */
@@ -51,7 +52,7 @@ export const defaultSymbol = symbol => {
     // 新增属性
     'has_weekly_and_monthly': true
   };
-}
+};
 
 /**
  * @description 修改默认配置
@@ -65,4 +66,4 @@ export const defaultConfiguration = () => {
     supports_timescale_marks: true,
     supports_time: true
   };
-}
+};

@@ -33,11 +33,11 @@
     </div>
 
     <div class="sell table cb" v-show="coinOrderValue ===0 || coinOrderValue ===2">
-      <div class="t_th" v-show="coinOrderValue ===0 || coinOrderValue ===2">
+      <!--<div class="t_th" v-show="coinOrderValue ===0 || coinOrderValue ===2">
         <div class="t_td" style="width: 120px;padding-left: 10px">价格(NULS)</div>
         <div class="t_td" style="width: 70px;">数量({{tradingInfo.symbol}})</div>
         <div class="t_td" style="width: 110px;">成交额(NULS)</div>
-      </div>
+      </div>-->
       <div class="t_tr cb" v-for="(item,index) in buyData" :key="index" v-loading="orderListLoading">
         <div class="t_td" style="width: 120px; color:#06ba63;padding-left: 10px">{{item.prices}}</div>
         <div class="t_td" style="width: 70px;">{{item.number}}</div>

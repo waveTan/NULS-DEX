@@ -1,8 +1,9 @@
 import socket from "./socket";
 import datafeeds from './datafees';
-import { getOverrides, getStudiesOverrides } from '@/utils/overrides';
-import { getKlineData } from '@/service/KlineService.js';
-import { throttle } from '@/utils'
+import {getOverrides, getStudiesOverrides} from '@/utils/overrides';
+import {getKlineData} from '@/service/KlineService.js';
+import {throttle} from '@/utils'
+
 class TVjsApi {
   constructor(symbol) {
     this.symbol = symbol;
@@ -23,6 +24,7 @@ class TVjsApi {
     this.datafeeds = new datafeeds(this);
     this.initMessage = throttle(this.initMessage, 3000);
   }
+
   /**
    * @description 图表初始化
    */
@@ -99,15 +101,15 @@ class TVjsApi {
       });
       let thats = this.widgets;
       const buttons = [
-        { title: '1min', resolution: '1', chartType: 1 },
-        { title: '5min', resolution: '5', chartType: 1 },
-        { title: '15min', resolution: '15', chartType: 1 },
-        { title: '30min', resolution: '30', chartType: 1 },
-        { title: '1hour', resolution: '60', chartType: 1 },
-        { title: '4hour', resolution: '240', chartType: 1 },
-        { title: '1day', resolution: '1D', chartType: 1 },
-        { title: '1week', resolution: '1W', chartType: 1 },
-        { title: '1month', resolution: '1M', chartType: 1 },
+        {title: '1min', resolution: '1', chartType: 1},
+        {title: '5min', resolution: '5', chartType: 1},
+        {title: '15min', resolution: '15', chartType: 1},
+        {title: '30min', resolution: '30', chartType: 1},
+        {title: '1hour', resolution: '60', chartType: 1},
+        {title: '4hour', resolution: '240', chartType: 1},
+        {title: '1day', resolution: '1D', chartType: 1},
+        {title: '1week', resolution: '1W', chartType: 1},
+        {title: '1month', resolution: '1M', chartType: 1},
       ];
       thats.headerReady().then(() => {
         this.createButton(buttons); //生成时间按钮
@@ -117,20 +119,22 @@ class TVjsApi {
       });
     }
   }
+
   /**
    * @description 创建5、10、20、30日均线
    */
   createStudy() {
     let thats = this.widgets;
-    let id = thats.chart().createStudy('Moving Average', false, false, [5], null, { 'Plot.color': 'rgb(150, 95, 196)' });
+    let id = thats.chart().createStudy('Moving Average', false, false, [5], null, {'Plot.color': 'rgb(150, 95, 196)'});
     this.studies.push(id);
-    id = thats.chart().createStudy('Moving Average', false, false, [10], null, { 'Plot.color': 'rgb(116,149,187)' });
+    id = thats.chart().createStudy('Moving Average', false, false, [10], null, {'Plot.color': 'rgb(116,149,187)'});
     this.studies.push(id);
-    id = thats.chart().createStudy('Moving Average', false, false, [20], null, { "plot.color": "rgb(58,113,74)" });
+    id = thats.chart().createStudy('Moving Average', false, false, [20], null, {"plot.color": "rgb(58,113,74)"});
     this.studies.push(id);
-    id = thats.chart().createStudy('Moving Average', false, false, [30], null, { "plot.color": "rgb(118,32,99)" });
+    id = thats.chart().createStudy('Moving Average', false, false, [30], null, {"plot.color": "rgb(118,32,99)"});
     this.studies.push(id);
   }
+
   /**
    * @description 生成周期按钮
    */
@@ -145,7 +149,7 @@ class TVjsApi {
       let directlyparent = button.parentNode.parentNode;
       directlyparent.className += ' Kline-resolutionparent';
       directlyparent.setAttribute('data-resolution', buttons[index].resolution);
-      if (buttons[index].resolution == this.interval) {
+      if (buttons[index].resolution === this.interval) {
         directlyparent.className += ' cur';
       }
       allresolution.push(directlyparent);
@@ -160,7 +164,7 @@ class TVjsApi {
         });
         if (!state) {
           let selectedresolution = this.getAttribute('data-resolution');
-          if (self.interval == selectedresolution) {
+          if (self.interval === selectedresolution) {
             return;
           }
           self.isLoading = true;
@@ -169,7 +173,7 @@ class TVjsApi {
           for (let i = 0; i < allresolution.length; i++) {
             let element = allresolution[i];
             let eleresolution = element.getAttribute('data-resolution');
-            if (eleresolution == self.interval) {
+            if (eleresolution === self.interval) {
               element.className += ' cur';
             } else {
               if (element.className.includes('cur')) {
@@ -187,12 +191,13 @@ class TVjsApi {
     }
     //创建指标
     let indicatorbutton = widget.createButton();
-    indicatorbutton.textContent = '指标';
+    indicatorbutton.textContent = '';
     indicatorbutton.className += ' indicator';
     indicatorbutton.addEventListener('click', function () {
       widget.chart().executeActionById("insertIndicator");
     });
   }
+
   /**
    * @description websocket推送信息
    * @param {Object} e
@@ -200,95 +205,94 @@ class TVjsApi {
   onMessage(e) {
     switch (e.type) {
       case 'getBars': //获取历史K线数据
-        {
-          this.disabled = true;
-          let data = e.data;
-          const ticker = `Tonghuashun${this.symbol}-${this.interval}`; //TonghuashunAPPLE/CNY-15
-          const tickerCallback = ticker + "Callback"; //TonghuashunAPPLE/CNY-15Callback
-          if (data && data.length) {
-
-            // 过滤后端数据为null的字段
-            data = data.filter(e => e.indexOf(null) < 0)
-
-            let list = [];
-            const tickerstate = ticker + "state"; //TonghuashunAPPLE/CNY-15state
-            const onLoadedCallback = this.cacheData[tickerCallback];
-            list = this.getCacheDataTicker(data);
-            //如果没有缓存数据，则直接填充，发起订阅
-            if (!this.cacheData[ticker]) {
-              this.cacheData[ticker] = list;
-              this.subscribe(); //发起订阅
-            }
-            //新数据即当前时间段需要的数据，直接喂给图表插件
-            if (onLoadedCallback) {
-              onLoadedCallback(list, { noData: false });
-              delete this.cacheData[tickerCallback];
-            }
-            //请求完成，设置状态为false
-            this.cacheData[tickerstate] = !1;
-            //记录当前缓存时间，即数组最后一位的时间
-            this.lastTime = this.cacheData[ticker][this.cacheData[ticker].length - 1].time;
-          } else {
-            const onLoadedCallback = this.cacheData[tickerCallback];
-            const tickerstate = ticker + "state"; //TonghuashunAPPLE/CNY-15state
-            //请求完成，设置状态为false
-            this.cacheData[tickerstate] = !1;
-            if (onLoadedCallback) {
-              onLoadedCallback([], { noData: true });
-              delete this.cacheData[tickerCallback];
-            }
+      {
+        this.disabled = true;
+        let data = e.data;
+        const ticker = `Tonghuashun${this.symbol}-${this.interval}`; //TonghuashunAPPLE/CNY-15
+        const tickerCallback = ticker + "Callback"; //TonghuashunAPPLE/CNY-15Callback
+        if (data && data.length) {
+          // 过滤后端数据为null的字段
+          data = data.filter(e => e.indexOf(null) < 0);
+          let list = [];
+          const tickerstate = ticker + "state"; //TonghuashunAPPLE/CNY-15state
+          const onLoadedCallback = this.cacheData[tickerCallback];
+          list = this.getCacheDataTicker(data);
+          //如果没有缓存数据，则直接填充，发起订阅
+          if (!this.cacheData[ticker]) {
+            this.cacheData[ticker] = list;
+            this.subscribe(); //发起订阅
+          }
+          //新数据即当前时间段需要的数据，直接喂给图表插件
+          if (onLoadedCallback) {
+            onLoadedCallback(list, {noData: false});
+            delete this.cacheData[tickerCallback];
+          }
+          //请求完成，设置状态为false
+          this.cacheData[tickerstate] = !1;
+          //记录当前缓存时间，即数组最后一位的时间
+          this.lastTime = this.cacheData[ticker][this.cacheData[ticker].length - 1].time;
+        } else {
+          const onLoadedCallback = this.cacheData[tickerCallback];
+          const tickerstate = ticker + "state"; //TonghuashunAPPLE/CNY-15state
+          //请求完成，设置状态为false
+          this.cacheData[tickerstate] = !1;
+          if (onLoadedCallback) {
+            onLoadedCallback([], {noData: true});
+            delete this.cacheData[tickerCallback];
           }
         }
+      }
         break;
       case "subscribeBars": //订阅后数据
-        {
-          let data = e.data;
-          if (data) {
-            const ticker = `Tonghuashun${this.symbol}-${this.interval}`; //TonghuashunAPPLE/CNY-1d
-            let barsData = {
-              time: data.time,
-              open: data.open,
-              high: data.high,
-              low: data.low,
-              close: data.close,
-              volume: data.volume,
-              isBarClosed: true,
-              isLastBar: false
+      {
+        let data = e.data;
+        if (data) {
+          const ticker = `Tonghuashun${this.symbol}-${this.interval}`; //TonghuashunAPPLE/CNY-1d
+          let barsData = {
+            time: data.time,
+            open: data.open,
+            high: data.high,
+            low: data.low,
+            close: data.close,
+            volume: data.volume,
+            isBarClosed: true,
+            isLastBar: false
+          };
+          const cannotwritable = ["1D", "1W", "1M"];
+          if (cannotwritable.includes(this.interval)) {
+            let addtime = 86400000;
+            if (this.interval === '1D') {
+              barsData.time += addtime;
             }
-            const cannotwritable = ["1D", "1W", "1M"];
-            if (cannotwritable.includes(this.interval)) {
-              let addtime = 86400000;
-              if (this.interval == '1D') {
-                barsData.time += addtime;
-              }
-              if (this.interval == '1W') {
-                barsData.time += (addtime * 7);
-              }
-              if (this.interval == '1M') {
-                barsData.time = this.getNextMonth(barsData.time);
-              }
+            if (this.interval === '1W') {
+              barsData.time += (addtime * 7);
             }
-            //如果增量更新数据的时间大于缓存时间，而且缓存有数据
-            if (barsData.time > this.lastTime && this.cacheData[ticker] && this.cacheData[ticker].length) {
-              //增量更新的数据直接加入缓存数组
-              this.cacheData[ticker].push(barsData);
-              //修改缓存时间
-              this.lastTime = barsData.time;
-              //通知图表插件，可以开始增量更新的渲染了
-              this.datafeeds.barsUpdater.updateData();
-            } else if (barsData.time == this.lastTime && this.cacheData[ticker] && this.cacheData[ticker].length) {
-              //如果增量更新的时间等于缓存时间，即在当前时间颗粒内产生了新数据，更新当前数据
-              this.cacheData[ticker][this.cacheData[ticker].length - 1] = barsData;
-              //通知图表插件，可以开始增量更新的渲染了
-              this.datafeeds.barsUpdater.updateData();
+            if (this.interval === '1M') {
+              barsData.time = this.getNextMonth(barsData.time);
             }
           }
+          //如果增量更新数据的时间大于缓存时间，而且缓存有数据
+          if (barsData.time > this.lastTime && this.cacheData[ticker] && this.cacheData[ticker].length) {
+            //增量更新的数据直接加入缓存数组
+            this.cacheData[ticker].push(barsData);
+            //修改缓存时间
+            this.lastTime = barsData.time;
+            //通知图表插件，可以开始增量更新的渲染了
+            this.datafeeds.barsUpdater.updateData();
+          } else if (barsData.time === this.lastTime && this.cacheData[ticker] && this.cacheData[ticker].length) {
+            //如果增量更新的时间等于缓存时间，即在当前时间颗粒内产生了新数据，更新当前数据
+            this.cacheData[ticker][this.cacheData[ticker].length - 1] = barsData;
+            //通知图表插件，可以开始增量更新的渲染了
+            this.datafeeds.barsUpdater.updateData();
+          }
         }
+      }
         break;
       default:
         break;
     }
   }
+
   getCacheDataTicker(list) {
     const cannotwritable = ["1D", "1W", "1M"];
     let addtime = 86400000;
@@ -307,19 +311,20 @@ class TVjsApi {
         isLastBar: false
       };
       if (cannotwritable.includes(this.interval)) {
-        if (this.interval == '1D') {
+        if (this.interval === '1D') {
           newItem.time += addtime;
         }
-        if (this.interval == '1W') {
+        if (this.interval === '1W') {
           newItem.time += (addtime * 7);
         }
-        if (this.interval == '1M') {
+        if (this.interval === '1M') {
           newItem.time = this.getNextMonth(newItem.time);
         }
       }
       return newItem;
     });
   }
+
   /**
    * @description 当前日期下一月
    */
@@ -333,7 +338,7 @@ class TVjsApi {
     days = days.getDate(); //获取当前日期中的月的天数
     let year2 = year;
     let month2 = parseInt(month) + 1;
-    if (month2 == 13) {
+    if (month2 === 13) {
       year2 = parseInt(year2) + 1;
       month2 = 1;
     }
@@ -347,20 +352,21 @@ class TVjsApi {
       month2 = '0' + month2;
     }
     // let t2 = year2 + '-' + month2 + '-' + day2;
-    let nextmonth = new Date(year2, month2, day2, 0, 0, 0).getTime();
-    return nextmonth;
+    return new Date(year2, month2, day2, 0, 0, 0).getTime();
   }
+
   /**
    * @description websocket关闭信息
    */
   onClose() {
-    console.log('tradingview index.js >> : 连接已断开... 正在重连')
+    console.log('tradingview index.js >> : 连接已断开... 正在重连');
     this.socket.doOpen();
     this.socket.on('open', () => {
-      console.log(' >> : 已重连')
+      console.log(' >> : 已重连');
       this.subscribe();
     });
   }
+
   /**
    * 发送websocket消息
    * @param {Object} data
@@ -374,6 +380,7 @@ class TVjsApi {
       });
     }
   }
+
   /**
    * @description 获取历史K线数据
    * @param {*} symbolInfo
@@ -424,6 +431,7 @@ class TVjsApi {
       }, 5000);
     }
   }
+
   /**
    * @description 初始化数据
    * @param {*} symbolInfo
@@ -439,7 +447,7 @@ class TVjsApi {
 
     //如果当前时间节点已经改变，停止上一个时间节点的订阅，修改时间节点值
     if (this.interval !== resolution) {
-      this.unSubscribe(this.interval)
+      this.unSubscribe(this.interval);
       this.interval = resolution;
     }
     //获取当前时间段的数据，在onMessage中执行回调onLoadedCallback
@@ -451,10 +459,10 @@ class TVjsApi {
         interval: resolutionstr,
         startTime: rangeStartDate * 1000,
         endTime: rangeEndDate * 1000,
-      }
+      };
       //获取接口数据，然后再从sokect中获取数据
       getKlineData(params).then((res) => {
-        console.log(res)
+        console.log(res);
         if (res.data && res.data.length) {
           this.onMessage({
             type: 'getBars',
@@ -472,21 +480,23 @@ class TVjsApi {
       });
     }
   }
+
   initresolutionstr(resolution) {
     let resolutionstr = '';
     if (resolution <= 60) {
       resolutionstr = resolution + 'm';
-    } else if (resolution == 240) {
+    } else if (resolution === 240) {
       resolutionstr = '4h';
-    } else if (resolution == '1D') {
+    } else if (resolution === '1D') {
       resolutionstr = '1d';
-    } else if (resolution == '1W') {
+    } else if (resolution === '1W') {
       resolutionstr = '1w';
-    } else if (resolution == '1M') {
+    } else if (resolution === '1M') {
       resolutionstr = '1mon';
     }
     return resolutionstr;
   }
+
   /**
    * @description 发起订阅
    */
@@ -495,9 +505,10 @@ class TVjsApi {
     let params = {
       type: "sub",
       value: `market.${this.symbol}.kline.${resolutionstr}`
-    }
+    };
     this.sendMessage(JSON.stringify(params));
   }
+
   /**
    * @description 取消订阅
    * @param {String} interval 周期
@@ -517,9 +528,10 @@ class TVjsApi {
     let params = {
       type: "unsub",
       value: `market.${this.symbol}.kline.${resolutionstr}`
-    }
+    };
     this.sendMessage(JSON.stringify(params));
   }
+
   /**
    * @description 切换交易对
    * @param {String} newpair 新交易对
@@ -545,6 +557,7 @@ class TVjsApi {
       });
     });
   }
+
   /**
    * @description 销毁操作
    */

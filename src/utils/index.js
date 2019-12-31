@@ -1,5 +1,5 @@
 export const throttle = (func, wait) => {
-  var previous = 0;
+  let previous = 0;
   return function () {
     let now = Date.now();
     let context = this;
@@ -9,4 +9,4 @@ export const throttle = (func, wait) => {
       previous = now;
     }
   }
-}
+};

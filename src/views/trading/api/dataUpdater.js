@@ -1,9 +1,11 @@
 class dataUpdater {
+
   constructor(datafeeds) {
     this.subscribers = {};
     this.requestsPending = 0;
     this.historyProvider = datafeeds;
   }
+
   /**
    * @description 订阅K线数据
    * @param {Object} symbolInfo
@@ -19,6 +21,7 @@ class dataUpdater {
       symbolInfo: symbolInfo
     };
   }
+
   /**
    * @description 取消订阅K线数据
    * @param {String} listenerGuid
@@ -26,6 +29,7 @@ class dataUpdater {
   unsubscribeBars(listenerGuid) {
     delete this.subscribers[listenerGuid];
   }
+
   /**
    * @description 更新图表
    * @num 更新个数
@@ -42,9 +46,10 @@ class dataUpdater {
       });
     }
   }
+
   /**
    * @description 更新订阅data数据
-   * @param {String} listenerGuid 
+   * @param {String} listenerGuid
    */
   updateDataForSubscriber(listenerGuid) {
     return new Promise((resolve, reject) => {
@@ -59,6 +64,7 @@ class dataUpdater {
       });
     });
   }
+
   /**
    * @description 换算时间差
    * @param {String} resolution 周期
@@ -77,18 +83,19 @@ class dataUpdater {
     }
     return daysCount * 24 * 60 * 60;
   }
+
   /**
    *
    * @param {*} listenerGuid
    * @param {*} bars
    */
   onSubscriberDataReceived(listenerGuid, bars) {
-    if (!this.subscribers.hasOwnProperty(listenerGuid)) return
-    if (!bars.length) return
+    if (!this.subscribers.hasOwnProperty(listenerGuid)) return;
+    if (!bars.length) return;
     const lastBar = bars[bars.length - 1];
     const subscriptionRecord = this.subscribers[listenerGuid];
     if (subscriptionRecord.lastBarTime !== null && lastBar.time < subscriptionRecord.lastBarTime) return;
-    const isNewBar = subscriptionRecord.lastBarTime !== null && lastBar.time > subscriptionRecord.lastBarTime
+    const isNewBar = subscriptionRecord.lastBarTime !== null && lastBar.time > subscriptionRecord.lastBarTime;
     if (isNewBar) {
       if (bars.length < 2) {
         throw new Error('Not enough bars in history for proper pulse update. Need at least 2.');
@@ -96,9 +103,8 @@ class dataUpdater {
       console.log('新的数据更新中。。。。');
       subscriptionRecord.listener(lastBar)
     }
-    subscriptionRecord.lastBarTime = lastBar.time
+    subscriptionRecord.lastBarTime = lastBar.time;
     subscriptionRecord.listener(lastBar);
-
   }
 }
 

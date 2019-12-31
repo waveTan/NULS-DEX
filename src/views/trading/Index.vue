@@ -17,11 +17,11 @@
             <div class="m_p_list fl">{{tradingInfo.tradingName}}</div>
             <div class="m_p_list fl">
               <div>最新价</div>
-              <div>{{tradingInfo.newPrices}}</div>
+              <div>{{Number(tradingInfo.newPrices).toFixed(5)}}</div>
             </div>
             <div class="m_p_list fl">
               <div>24h涨跌</div>
-              <div>{{tradingInfo.upsDowns}}</div>
+              <div>{{Number(tradingInfo.upsDowns).toFixed(3)}}%</div>
             </div>
             <div class="m_p_list fl">
               <div>24h最高价</div>
@@ -49,7 +49,7 @@
               <div class="fl buy">
                 <div class="name">
                   <span class="font14">买入 {{tradingInfo.symbol}}</span>
-                  <font class="fr font12">可用: {{quoteAssetInfo.balances}} NULS</font>
+                  <font class="fr font12" v-show="accountInfo.address">可用: {{quoteAssetInfo.balances}} NULS</font>
                 </div>
                 <el-form :model="buyForm" :rules="buyRules" ref="buyForm" class="buy_form" label-width="44px">
                   <el-form-item label="价格">
@@ -73,15 +73,28 @@
                       <i slot="suffix">NULS</i>
                     </el-input>
                   </el-form-item>
-                  <el-form-item>
-                    <el-button type="success" @click="submitBuyForm('buyForm')">买入 {{tradingInfo.symbol}}</el-button>
-                  </el-form-item>
+                  <div v-if="accountInfo.address">
+                    <div class="fred font10" v-show="Number(buyForm.amount) < Number(tradingInfo.quoteMinSize)">
+                      最小挂单额: {{tradingInfo.quoteMinSize}}
+                      <span class="fCN">NULS</span>
+                    </div>
+                    <el-form-item>
+                      <el-button type="success" @click="submitBuyForm('buyForm')"
+                                 :disabled="Number(buyForm.amount) <= Number(tradingInfo.quoteMinSize)">
+                        买入 {{tradingInfo.symbol}}
+                      </el-button>
+                    </el-form-item>
+                  </div>
+                  <div v-else class="no_user">
+                    <el-button>登录进行交易</el-button>
+                  </div>
                 </el-form>
               </div>
               <div class="fr sell">
                 <div class="name">
                   <span class="font14">卖出 {{tradingInfo.symbol}}</span>
-                  <font class="fr font12">可用: {{baseAssetInfo.balances}} {{tradingInfo.symbol}}</font>
+                  <font class="fr font12" v-show="accountInfo.address">可用: {{baseAssetInfo.balances}}
+                    {{tradingInfo.symbol}}</font>
                 </div>
                 <el-form :model="sellForm" :rules="sellRules" ref="sellForm" class="buy_form" label-width="44px">
                   <el-form-item label="价格">
@@ -90,7 +103,7 @@
                     </el-input>
                   </el-form-item>
                   <el-form-item label="数量">
-                    <el-input v-model.number="sellForm.num">
+                    <el-input v-model="sellForm.num">
                       <i slot="suffix">{{tradingInfo.symbol}}</i>
                     </el-input>
                   </el-form-item>
@@ -105,9 +118,21 @@
                       <i slot="suffix">NULS</i>
                     </el-input>
                   </el-form-item>
-                  <el-form-item>
-                    <el-button type="danger" @click="submitSellForm('buyForm')">卖出 {{tradingInfo.symbol}}</el-button>
-                  </el-form-item>
+                  <div v-if="accountInfo.address">
+                    <div class="fred font10" v-show="Number(sellForm.amount) < Number(tradingInfo.quoteMinSize)">
+                      最小挂单额: {{tradingInfo.quoteMinSize}}
+                      <span class="fCN">NULS</span>
+                    </div>
+                    <el-form-item>
+                      <el-button type="danger" @click="submitSellForm('buyForm')"
+                                 :disabled="Number(sellForm.amount) <= Number(tradingInfo.quoteMinSize)">
+                        卖出 {{tradingInfo.symbol}}
+                      </el-button>
+                    </el-form-item>
+                  </div>
+                  <div v-else class="no_user">
+                    <el-button>登录进行交易</el-button>
+                  </div>
                 </el-form>
               </div>
             </div>
@@ -125,7 +150,7 @@
       <!-- top end -->
 
       <!-- footer start -->
-      <div class="footer cd">
+      <div class="footer cd" v-show="accountInfo.address">
         <div class="title font12">
           <span class="fwhite">当前委托</span>
           <font class="fr fwhite">全部订单<i class="el-icon-d-arrow-right"></i></font>
@@ -197,7 +222,7 @@
   export default {
     data() {
       return {
-        accountInfo: '',//账户信息
+        accountInfo: {},//账户信息
         tradingInfo: {},//交易对信息
         quoteAssetInfo: {},//买 资产信息
         baseAssetInfo: {},//卖 资产信息
@@ -238,7 +263,7 @@
         orderType: 1,  //委托挂单类型 1:买单，2:卖单
         buyForm: {
           price: '',
-          num: '',
+          num: '0',
           amount: '',
         },
         buyRules: {
@@ -250,7 +275,7 @@
         buySpan: 0,
         sellForm: {
           price: '',
-          num: '',
+          num: '0',
           amount: '',
         },
         sellRules: {
@@ -271,12 +296,11 @@
       this.accountInfo = localStorage.hasOwnProperty('accountInfo') ? JSON.parse(localStorage.getItem('accountInfo')) : {};
       this.tradingInfo = this.$store.getters.getDealData;
       this.getTradingInfo(this.tradingInfo.hash);
-      //this.getTradingGet(this.tradingInfo.hash);
     },
     mounted() {
-      if (this.accountInfo) {
+      if (this.accountInfo.address) {
         this.accountInfo.balances = Number(divisionDecimals(this.accountInfo.balance, 8)).toFixed(3);
-        //this.getEntrustList(this.accountInfo.address, this.pageIndex, this.pageSize);
+        this.getEntrustList(this.accountInfo.address, this.pageIndex, this.pageSize);
         setInterval(() => {
           //this.getTradingGet(this.tradingInfo.hash);
           this.getEntrustList(this.accountInfo.address, this.pageIndex, this.pageSize);
@@ -297,37 +321,25 @@
         this.tradingInfoLoading = true;
 
         this.buySpan = 0;
-        this.buyForm.num = '';
+        this.buyForm.num = '0';
         this.buyForm.amount = '';
 
         this.sellSpan = 0;
-        this.sellForm.num = '';
+        this.sellForm.num = '0';
         this.sellForm.amount = ''
       },
       'buyForm.price': function () {
         this.buyForm.amount = Times(this.buyForm.num, this.buyForm.price);
         // 解决数字键盘可以输入输入多个小数点问题
-        /*if (newVal === '' && oldVal.toString().indexOf('.') > 0) {
-          this.buyForm.num = oldVal;
-          return;
-        }*/
       },
       'buyForm.num': function () {
         // console.log(newVal, oldVal);
         this.buyForm.amount = Times(this.buyForm.num, this.buyForm.price);
         // 解决数字键盘可以输入输入多个小数点问题
-        /*if (newVal === '' && oldVal.toString().indexOf('.') > 0) {
-          this.buyForm.num = oldVal;
-          return;
-        }*/
       },
       'sellForm.price': function () {
-        this.sellForm.amount = Times(this.sellForm.num, this.sellForm.price).toFixed(9).toString();
+        this.sellForm.amount = Times(this.sellForm.num, this.sellForm.price);
         // 解决数字键盘可以输入输入多个小数点问题
-        /*if (newVal === '' && oldVal.toString().indexOf('.') > 0) {
-          this.buyForm.num = oldVal;
-          return;
-        }*/
       },
       'sellForm.num': function () {
         //console.log(newVal, oldVal);
@@ -359,38 +371,37 @@
         tradingInfoRes.result.upsDowns = tradingInfoRes.result.highPrice24 - tradingInfoRes.result.lowPrice24 === 0 ? 0 : (tradingInfoRes.result.highPrice24 - tradingInfoRes.result.lowPrice24) / tradingInfoRes.result.lowPrice24;
         tradingInfoRes.result.highPrice24s = divisionDecimals(tradingInfoRes.result.highPrice24, tradingInfoRes.result.baseDecimal);
         tradingInfoRes.result.lowPrice24s = divisionDecimals(tradingInfoRes.result.lowPrice24, tradingInfoRes.result.baseDecimal);
+        tradingInfoRes.result.quoteMinSize = divisionDecimals(tradingInfoRes.result.quoteMinSize, tradingInfoRes.result.baseDecimal);
         tradingInfoRes.result.dealAmount24s = divisionDecimals(tradingInfoRes.result.dealAmount24, tradingInfoRes.result.baseDecimal);
         tradingInfoRes.result.symbol = tradingInfoRes.result.tradingName.substring(0, tradingInfoRes.result.tradingName.length - 5);
         this.tradingInfo = tradingInfoRes.result;
         this.buyForm.price = tradingInfoRes.result.newPrices;
         this.sellForm.price = tradingInfoRes.result.newPrices;
-        let quoteAssetByAddress = await getBaseAssetInfo(this.tradingInfo.quoteAssetChainId, this.tradingInfo.quoteAssetId, this.accountInfo.address);
-        //console.log(quoteAssetByAddress);
-        if (!quoteAssetByAddress.success) {
-          this.$message({
-            message: '获取资产信息错误:' + JSON.stringify(quoteAssetByAddress.data),
-            type: 'error',
-            duration: 3000
-          });
-          return;
-        }
-        quoteAssetByAddress.data.balances = Number(divisionDecimals(quoteAssetByAddress.data.balance, 8));
-        this.quoteAssetInfo = quoteAssetByAddress.data;
-        //console.log(this.quoteAssetInfo);
 
-        let baseAssetByAddress = await getBaseAssetInfo(this.tradingInfo.baseAssetChainId, this.tradingInfo.baseAssetId, this.accountInfo.address);
-        if (!baseAssetByAddress.success) {
-          this.$message({
-            message: '获取资产信息错误:' + JSON.stringify(baseAssetByAddress.data),
-            type: 'error',
-            duration: 3000
-          });
-          return;
-        }
-        baseAssetByAddress.data.balances = Number(divisionDecimals(baseAssetByAddress.data.balance, 8));
-        this.baseAssetInfo = baseAssetByAddress.data;
-        //console.log(this.baseAssetInfo);
+        if (this.accountInfo.address) {
+          let quoteAssetByAddress = await getBaseAssetInfo(this.tradingInfo.quoteAssetChainId, this.tradingInfo.quoteAssetId, this.accountInfo.address);
+          //console.log(quoteAssetByAddress);
+          if (!quoteAssetByAddress.success) {
+            this.$message({
+              message: '获取资产信息错误:' + JSON.stringify(quoteAssetByAddress.data), type: 'error', duration: 3000
+            });
+            return;
+          }
+          quoteAssetByAddress.data.balances = Number(divisionDecimals(quoteAssetByAddress.data.balance, 8));
+          this.quoteAssetInfo = quoteAssetByAddress.data;
+          //console.log(this.quoteAssetInfo);
 
+          let baseAssetByAddress = await getBaseAssetInfo(this.tradingInfo.baseAssetChainId, this.tradingInfo.baseAssetId, this.accountInfo.address);
+          if (!baseAssetByAddress.success) {
+            this.$message({
+              message: '获取资产信息错误:' + JSON.stringify(baseAssetByAddress.data), type: 'error', duration: 3000
+            });
+            return;
+          }
+          baseAssetByAddress.data.balances = Number(divisionDecimals(baseAssetByAddress.data.balance, 8));
+          this.baseAssetInfo = baseAssetByAddress.data;
+          //console.log(this.baseAssetInfo);
+        }
         this.tradingInfoLoading = false;
       },
 
@@ -422,14 +433,14 @@
 
       /**
        * @disc: 选择买百分比
-       * @params: number
+       * @params: num
        * @date: 2019-12-20 10:52
        * @author: Wave
        */
-      choiceBuy(number) {
-        this.buySpan = number;
-        this.buyForm.amount = Times(Number(this.accountInfo.balances), number);
-        this.buyForm.num = Times(Number(this.buyForm.amount), Number(this.buyForm.price));
+      choiceBuy(num) {
+        this.buySpan = num;
+        this.buyForm.amount = Number(Times(Number(this.quoteAssetInfo.balances), num)).toString();
+        this.buyForm.num = Number(Times(Number(this.buyForm.amount), Number(this.buyForm.price))).toString();
       },
 
       /**
@@ -650,7 +661,7 @@
 
   .trading {
     background-color: #0b0c14;
-    min-height: 1120px;
+    min-height: 820px;
     .top {
       height: 805px;
       padding: 20px 0 0 0;
@@ -787,6 +798,28 @@
                     }
                   }
 
+                }
+              }
+              .font10 {
+                position: absolute;
+                text-align: right;
+                width: 280px;
+              }
+              .no_user {
+                .el-button {
+                  width: 280px;
+                  height: 35px;
+                  border-radius: 0;
+                  color: #C0C4CC;
+                  font-size: 12px;
+                  margin: 19px 0 0 0;
+                  line-height: 12px;
+                  background-color: transparent;
+                  border-color: #888db5;
+                  &:hover {
+                    color: #DCDFE6;
+                    border-color: #DCDFE6;
+                  }
                 }
               }
             }
