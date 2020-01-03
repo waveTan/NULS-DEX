@@ -38,7 +38,7 @@
           </div>
 
           <div class="m_middle">
-            <!--<ChartBar></ChartBar>-->
+            <ChartBar :tradingHash="tradingInfo.hash"></ChartBar>
           </div>
 
           <div class="m_footer">
@@ -142,7 +142,7 @@
 
         <!-- top_right start -->
         <div class="fr right">
-          <RightBar></RightBar>
+          <RightBar :tradingInfo="tradingInfo"></RightBar>
         </div>
         <!-- top_right end -->
 

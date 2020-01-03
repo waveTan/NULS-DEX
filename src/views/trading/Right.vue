@@ -29,7 +29,11 @@
     </div>
 
     <div class="title r_middle" v-show="coinOrderValue === 0 " v-loading="orderListLoading">
-      <span>36566.36<i class="el-icon-top"></i> <font>$5336.66</font></span>
+      <span>
+        {{tradingInfo.newPrices}}
+        <i :class="tradingInfo.newPrice < tradingInfo.beforePrice ? 'el-icon-top':'el-icon-bottom fred'"></i>
+        <font>$5336.66</font>
+      </span>
     </div>
 
     <div class="sell table cb" v-show="coinOrderValue ===0 || coinOrderValue ===2">
@@ -51,7 +55,12 @@
   import {divisionDecimals, Times, Division} from '@/api/util.js'
 
   export default {
-    name: "right",
+    props: {
+      tradingInfo: {
+        type: Object,
+        default: {},
+      },
+    },
     data() {
       return {
         tradingInfo: {},//交易对信息
@@ -64,11 +73,14 @@
     },
     created() {
       this.getOrderList(this.$store.getters.getDealData.hash);
+      if (this.tradingInfo.newPrice) {
+        this.tradingInfo.newPrices = Number(divisionDecimals(this.tradingInfo.newPrice, this.tradingInfo.baseDecimal));
+      }
+
     },
     mounted() {
-      let _this = this;
       setInterval(() => {
-        _this.getOrderList(_this.$store.getters.getDealData.hash);
+        this.getOrderList(this.$store.getters.getDealData.hash);
       }, 10000);
     },
     components: {},
