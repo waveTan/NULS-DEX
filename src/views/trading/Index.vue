@@ -176,7 +176,7 @@
             </el-table-column>
             <el-table-column align="center" label="成交率" width="110">
               <template slot-scope="scope">
-                <span>{{Number(scope.row.ratio*100).toFixed(2)}}%</span>
+                <span>{{scope.row.ratio*100}}%</span>
               </template>
             </el-table-column>
             <el-table-column prop="dealNumber" align="center" label="已成交总数" width="110">
@@ -642,12 +642,12 @@
         for (let item of entrustListRes.result.list) {
           item.hashs = superLong(item.hash, 8);
           item.time = moment(getLocalTime(item.createTime)).format('YYYY-MM-DD HH:mm:ss');
-          item.price = Number(divisionDecimals(item.price, item.baseDecimal));
-          item.number = Number(divisionDecimals(item.baseAmount, item.baseDecimal));
+          item.price = parseFloat(Number(divisionDecimals(item.price, item.baseDecimal)));
+          item.number = parseFloat(Number(divisionDecimals(item.baseAmount, item.baseDecimal)));
           item.totalAmount = Number(Times(item.price, item.number));
           item.dealNumber = Number(divisionDecimals(item.baseDealAmount, item.baseDecimal));
           item.dealTotalAmount = Number(Times(item.price, item.dealNumber));
-          item.ratio = Number(Division(Number(item.dealNumber), Number(item.number))).toFixed(4);
+          item.ratio = parseFloat(Number(Division(Number(item.dealNumber), Number(item.number))).toFixed(4));
         }
         this.entrustData = entrustListRes.result.list
       },

@@ -2,8 +2,8 @@
   <div class="assets_bar w1400">
     <div class="address">
       <span class="font16">{{$t('public.address')}}:</span><font>{{accountInfo.address}}</font>
-      <i class="el-icon-money click font18"></i>
-      <i class="el-icon-document click font18"></i>
+      <i class="el-icon-money click font18" @click="toCopy(accountInfo.address)"></i>
+      <!--<i class="el-icon-document click font18"></i>-->
     </div>
     <div class="tab">
       <div class="assets_tool">
@@ -32,7 +32,7 @@
           </el-table-column>
           <el-table-column label="发送资产" min-width="100" align="center">
             <template slot-scope="scope">
-              <el-link type="primary">转账</el-link>
+              <el-link type="primary" @click="transfer(scope.row)">转账</el-link>
             </template>
           </el-table-column>
         </el-table>
@@ -42,6 +42,7 @@
 </template>
 
 <script>
+  import {copys} from '@/api/util.js'
   export default {
     name: "assets-bar",
     data() {
@@ -130,7 +131,29 @@
     components: {
       //Password,
     },
-    methods: {}
+    methods: {
+
+      /**
+       * @disc: 复制功能
+       * @params: address
+       * @date: 2020-01-03 16:34
+       * @author: Wave
+       */
+      toCopy(address) {
+        copys(address);
+        this.$message({message: '复制完成', type: 'success', duration: 1000});
+      },
+
+      /**
+       * @disc: 转账
+       * @params:row
+       * @date: 2020-01-03 15:56
+       * @author: Wave
+       */
+      transfer(row) {
+        console.log(row)
+      },
+    }
   }
 </script>
 
@@ -142,7 +165,7 @@
       height: 50px;
       line-height: 50px;
       border-bottom: 1px solid #E5E7F0;
-      .el-icon-money{
+      .el-icon-money {
         margin: 0 10px;
       }
     }

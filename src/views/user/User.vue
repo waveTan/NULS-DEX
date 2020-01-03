@@ -19,7 +19,7 @@
   import Password from '@/components/PasswordBar'
   import AssetsBar from '@/views/user/AssetsBar'
   import OrderBar from '@/views/user/OrderBar'
-  import {divisionDecimals, connect} from '@/api/util'
+  import {connect} from '@/api/util'
   import {getAddressInfoByAddress} from '@/api/requestData'
 
   export default {
@@ -66,12 +66,18 @@
         }
       },
 
-      userTabsClick(tab, event) {
-        console.log(tab, event);
+      /**
+       * @disc: tab切换
+       * @params:
+       * @date: 2020-01-03 15:39
+       * @author: Wave
+       */
+      userTabsClick(tab) {
+        console.log(tab.name);
       },
 
-      handleClick(tab, event) {
-        console.log(tab, event);
+      handleClick(tab) {
+        console.log(tab.name);
       },
 
       /**
@@ -93,8 +99,6 @@
 </script>
 
 <style lang="less">
-  @import "./../../assets/css/style";
-
   .account {
     margin: 0 auto;
     .user_tabs {
@@ -103,7 +107,7 @@
         .el-tabs__nav-wrap {
           height: 60px;
           line-height: 50px;
-          &:after{
+          &:after {
             background: linear-gradient(bottom, #ffffff, #E4E7ED);
             height: 10px;
           }

@@ -14,12 +14,14 @@
 
       <div class="search cb">
         <div class="fl">
-          <el-input placeholder="请输入交易对" prefix-icon="el-icon-search" v-model="search">
+          <el-input placeholder="请输入交易对" prefix-icon="el-icon-search" v-model="search" @input="changeSearch">
           </el-input>
         </div>
         <div class="fr">
-          <el-radio v-model="radio" label="1">涨幅</el-radio>
-          <el-radio v-model="radio" label="2">成交量</el-radio>
+          <el-radio-group v-model="radio" @change="changeRadio">
+            <el-radio label="1">涨幅</el-radio>
+            <el-radio label="2">成交量</el-radio>
+          </el-radio-group>
         </div>
       </div>
 
@@ -36,7 +38,7 @@
           </div>
           <div class="t_td" style="width: 120px;">{{item.tradingName}}</div>
           <div class="t_td" style="width: 70px;">{{item.newPrices}}</div>
-          <div class="t_td" style="width: 60px;">{{Number(item.upsDowns).toFixed(2)}}%</div>
+          <div class="t_td" style="width: 60px;">{{item.upsDowns}}%</div>
         </div>
       </div>
 
@@ -130,9 +132,9 @@
           this.$message({message: '获取交易对错误:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});
         }
         for (let item of coinRes.result) {
-          item.newPrices = Number(divisionDecimals(item.newPrice, item.quoteDecimal)).toFixed(3);
+          item.newPrices = parseFloat(Number(divisionDecimals(item.newPrice, item.quoteDecimal)).toFixed(3));
           //涨跌 = （highPrice24 - lowPrice24）/lowPrice24
-          item.upsDowns = Number((item.highPrice24 - item.lowPrice24) === 0 ? 0 : (item.highPrice24 - item.lowPrice24) / item.lowPrice24).toFixed(3);
+          item.upsDowns = parseFloat(Number((item.highPrice24 - item.lowPrice24) === 0 ? 0 : (item.highPrice24 - item.lowPrice24) / item.lowPrice24).toFixed(2));
           if (item.tradingName === 'BTC/NULS') {
             this.choiceDeal(item);
           }
@@ -152,6 +154,26 @@
       },
 
       /**
+       * @disc: 搜索框值改变
+       * @params: value
+       * @date: 2020-01-03 16:52
+       * @author: Wave
+       */
+      changeSearch(value) {
+        console.log(value);
+      },
+
+      /**
+       * @disc: 选择涨幅/成交量
+       * @params: e
+       * @date: 2020-01-03 16:43
+       * @author: Wave
+       */
+      changeRadio(value) {
+        console.log(value);
+      },
+
+      /**
        * @disc: 获取最新成交列表
        * @params: tradingHash
        * @date: 2019-12-13 15:44
@@ -166,8 +188,8 @@
           this.$message({message: '获取最新成交列表:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});
         }
         for (let item of coinRes.result) {
-          item.prices = Number(divisionDecimals(item.price, item.baseDecimal)).toFixed(3);
-          item.number = Number(divisionDecimals(item.baseAmount, item.baseDecimal)).toFixed(3);
+          item.prices = parseFloat(Number(divisionDecimals(item.price, item.baseDecimal)).toFixed(3));
+          item.number = parseFloat(Number(divisionDecimals(item.baseAmount, item.baseDecimal)).toFixed(3));
           item.time = moment(getLocalTime(item.createTime)).format('MM-DD HH:mm:ss');
         }
         this.newestData = coinRes.result;

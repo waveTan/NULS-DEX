@@ -8,7 +8,7 @@
       </div>
       <div class="fr">
         <span class="font12">深度合并</span>
-        <el-select v-model="depthValue" class="depth" :popper-append-to-body="false">
+        <el-select v-model="depthValue" class="depth" :popper-append-to-body="false" @change="changeDepth">
           <el-option v-for="item in 3" :key="item" :label="item" :value="item">
           </el-option>
         </el-select>
@@ -56,14 +56,13 @@
 
   export default {
     props: {
+      //交易对信息
       tradingInfo: {
         type: Object,
-        default: {},
       },
     },
     data() {
       return {
-        tradingInfo: {},//交易对信息
         coinOrderValue: 0,//交易对订单0：买卖各一半，1：买，2：卖
         buyData: [],//买列表
         sellData: [],//卖列表
@@ -76,7 +75,6 @@
       if (this.tradingInfo.newPrice) {
         this.tradingInfo.newPrices = Number(divisionDecimals(this.tradingInfo.newPrice, this.tradingInfo.baseDecimal));
       }
-
     },
     mounted() {
       setInterval(() => {
@@ -125,19 +123,30 @@
         }
         for (let item of coinRes.result.buyOrderList) {
           //console.log(item);
-          item.prices = Number(divisionDecimals(item.price, item.quoteDecimal)).toFixed(5);
-          item.number = Number(Division(item.quoteAmount, item.price)).toFixed(5);
-          item.amount = Number(Times(item.prices, item.number)).toFixed(5);
+          item.prices = parseFloat(Number(divisionDecimals(item.price, item.quoteDecimal)).toFixed(5));
+          item.number = parseFloat(Number(Division(item.quoteAmount, item.price)).toFixed(5));
+          item.amount = parseFloat(Number(Times(item.prices, item.number)).toFixed(5));
         }
         for (let item of coinRes.result.sellOrderList) {
-          item.prices = Number(divisionDecimals(item.price, item.quoteDecimal)).toFixed(5);
-          item.number = Number(divisionDecimals(item.baseAmount, item.baseDecimal)).toFixed(5);
-          item.amount = Number(Times(item.prices, item.number)).toFixed(5);
+          item.prices = parseFloat(Number(divisionDecimals(item.price, item.quoteDecimal)).toFixed(5));
+          item.number = parseFloat(Number(divisionDecimals(item.baseAmount, item.baseDecimal)).toFixed(5));
+          item.amount = parseFloat(Number(Times(item.prices, item.number)).toFixed(5));
         }
         this.buyData = coinRes.result.buyOrderList;
         this.sellData = coinRes.result.sellOrderList;
         this.orderListLoading = false;
       },
+
+      /**
+       * @disc: 选择深度
+       * @params: value
+       * @date: 2020-01-03 17:01
+       * @author: Wave
+       */
+      changeDepth(value) {
+        console.log(value)
+      },
+
     }
   }
 </script>
@@ -224,6 +233,7 @@
       }
     }
     .buy, .sell {
+      min-height: 50px;
       .t_tr {
         &:hover {
           background-color: transparent;

@@ -79,9 +79,7 @@
         //K线图数据
         chartData: {
           columns: ['time', 'open', 'close', 'lowest', 'highest', 'vol'],
-          rows: [
-            {time: '2004-01-05', open: 10411.85, close: 10544.07, lowest: 10411.85, highest: 10575.92, vol: 221290000},
-          ]
+          rows: []
         }
       }
     },

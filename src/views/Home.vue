@@ -1,20 +1,23 @@
 <template>
   <div class="home">
     home
-    <div>
+    <!--<div>
       <ChartBar></ChartBar>
-    </div>
+    </div>-->
   </div>
 </template>
 
 <script>
   import ChartBar from '@/views/trading/Chart'
+
   export default {
     data() {
       return {};
     },
     components: {ChartBar},
     created() {
+    },
+    mounted() {
     },
     methods: {}
   }
