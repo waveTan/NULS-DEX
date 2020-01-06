@@ -2,18 +2,19 @@
   <div class="chart">
     <div class="title sub_info fwhite">
       <div class="conditon fl">
-        <el-select v-model="minuteValue" placeholder="分钟" class="c_select fl" :popper-append-to-body="false">
+        <el-select v-model="minuteValue" placeholder="分钟" class="c_select fl" :popper-append-to-body="false"
+                   @change="choiceMinute">
           <el-option v-for="item in minuteOptions" :key="item.value" :label="item.label" :value="item.value">
           </el-option>
         </el-select>
-        <el-select v-model="hourValue" placeholder="小时" class="c_select fl" :popper-append-to-body="false">
+        <el-select v-model="hourValue" placeholder="小时" class="c_select fl" :popper-append-to-body="false" @change="choiceHour">
           <el-option v-for="item in hourOptions" :key="item.value" :label="item.label" :value="item.value">
           </el-option>
         </el-select>
-        <span class="c_span">日线</span>
-        <span class="c_span">周线</span>
-        <span class="c_span">月线</span>
-        <span class="c_span">全部</span>
+        <span class="c_span clicks" @click="choiceDate('1440')">日线</span>
+        <span class="c_span clicks" @click="choiceDate('7200')">周线</span>
+        <!--<span class="c_span clicks">月线</span>
+        <span class="c_span clicks">全部</span>-->
       </div>
       <div class="look fr">
         <span class="is_active">TradingView</span>
@@ -43,37 +44,22 @@
         dataType: 'KMB'
       };
       return {
+
+        dateValue: 1,//时间选择
         //分钟下拉框
         minuteOptions: [
-          {
-            value: '5',
-            label: '5分钟'
-          }, {
-            value: '15',
-            label: '15分钟'
-          }, {
-            value: '30',
-            label: '30分钟'
-          }, {
-            value: '45',
-            label: '45分钟'
-          }],
+          {value: '1', label: '1分钟'},
+          {value: '5', label: '5分钟'},
+          {value: '10', label: '10分钟'},
+          {value: '30', label: '30分钟'}
+        ],
         minuteValue: '',
         //小时下拉框
         hourOptions: [
-          {
-            value: '1',
-            label: '1小时'
-          }, {
-            value: '6',
-            label: '6小时'
-          }, {
-            value: '12',
-            label: '12小时'
-          }, {
-            value: '18',
-            label: '18小时'
-          }],
+          {value: '60', label: '1小时'},
+          {value: '360', label: '6小时'},
+          {value: '720', label: '12小时'}
+        ],
         hourValue: '',
 
         //K线图数据
@@ -87,12 +73,12 @@
     },
     mounted() {
       if (this.tradingHash) {
-        this.getTradingGet(this.tradingHash);
+        this.getTradingGet(this.tradingHash, this.dateValue);
       }
     },
     watch: {
       tradingHash: function (newVal) {
-        this.getTradingGet(newVal);
+        this.getTradingGet(newVal, this.dateValue);
       }
     },
     methods: {
@@ -100,12 +86,13 @@
       /**
        * @disc: 获取交易对K线图
        * @params: tradingHash
+       * @params: type
        * @date: 2019-12-16 10:41
        * @author: Wave
        */
-      async getTradingGet(tradingHash) {
+      async getTradingGet(tradingHash, type) {
         let url = '/view/kLine/list';
-        let data = {"tradingHash": tradingHash, "type": 1,};
+        let data = {"tradingHash": tradingHash, "type": type};
         let tradingGetRes = await this.$dexPost(url, data);
         //console.log(tradingGetRes);
         if (!tradingGetRes.success) {
@@ -121,6 +108,39 @@
           item.vol = Number(item.amount).toFixed(3)
         }
         this.chartData.rows = tradingGetRes.result
+      },
+
+      /**
+       * @disc: 分钟选择
+       * @params: minute
+       * @date: 2020-01-06 14:34
+       * @author: Wave
+       */
+      choiceMinute(minute) {
+        this.dateValue = Number(minute);
+        this.getTradingGet(this.tradingHash, this.dateValue);
+      },
+
+      /**
+       * @disc: 小时选择
+       * @params: hour
+       * @date: 2020-01-06 14:34
+       * @author: Wave
+       */
+      choiceHour(hour) {
+        this.dateValue = Number(hour);
+        this.getTradingGet(this.tradingHash, this.dateValue);
+      },
+
+      /**
+       * @disc: 日期选择
+       * @params: data
+       * @date: 2020-01-06 14:25
+       * @author: Wave
+       */
+      choiceDate(data) {
+        this.dateValue = Number(data);
+        this.getTradingGet(this.tradingHash, this.dateValue);
       },
 
     },

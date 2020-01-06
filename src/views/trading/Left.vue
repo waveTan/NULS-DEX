@@ -4,21 +4,21 @@
     <div class="l_top">
 
       <div class="title sub_info check_tab">
-        <span class="fwhite" :class="coinValue === -1 ? 'is_checked' : ''" @click="checkCoin(-1)" v-show="!accountInfo">
+        <span class="fwhite" :class="coinValue === -1 ? 'is_checked' : ''" @click="checkCoin(-1)"
+              v-if="!accountInfo.address">
           所有</span>
-        <span class="fwhite" :class="coinValue === 0 ? 'is_checked' : ''" @click="checkCoin(0)" v-show="accountInfo">
-          自选</span>
+        <span class="fwhite" :class="coinValue === 0 ? 'is_checked' : ''" @click="checkCoin(0)" v-else>自选</span>
         <span class="fwhite" :class="coinValue === 1 ? 'is_checked' : ''" @click="checkCoin(1)">NULS</span>
         <span class="fwhite" :class="coinValue === 2 ? 'is_checked' : ''" @click="checkCoin(2)">USDI</span>
       </div>
 
       <div class="search cb">
         <div class="fl">
-          <el-input placeholder="请输入交易对" prefix-icon="el-icon-search" v-model="search" @input="changeSearch">
+          <el-input placeholder="请输入交易对" prefix-icon="el-icon-search" v-model="search">
           </el-input>
         </div>
         <div class="fr">
-          <el-radio-group v-model="radio" @change="changeRadio">
+          <el-radio-group v-model="radio">
             <el-radio label="1">涨幅</el-radio>
             <el-radio label="2">成交量</el-radio>
           </el-radio-group>
@@ -30,7 +30,8 @@
           <div class="t_td" style="width: 50px;text-align: center">&nbsp;</div>
           <div class="t_td" style="width: 120px;">交易对</div>
           <div class="t_td" style="width: 70px;">价格</div>
-          <div class="t_td" style="width: 60px;">涨跌</div>
+          <div class="t_td" style="width: 60px;" v-if="radio ==='1'">涨跌</div>
+          <div class="t_td" style="width: 60px;" v-else>成交量</div>
         </div>
         <div class="t_tr cb" v-for="(item,index) in counterpartyData" :key="index" @click="choiceDeal(item)">
           <div class="t_td clicks" style="width: 50px;text-align: center">
@@ -38,7 +39,8 @@
           </div>
           <div class="t_td" style="width: 120px;">{{item.tradingName}}</div>
           <div class="t_td" style="width: 70px;">{{item.newPrices}}</div>
-          <div class="t_td" style="width: 60px;">{{item.upsDowns}}%</div>
+          <div class="t_td" style="width: 60px;" v-if="radio ==='1'">{{item.upsDowns}}%</div>
+          <div class="t_td" style="width: 60px;" v-else>{{item.dealAmount24}}</div>
         </div>
       </div>
 
@@ -78,21 +80,44 @@
     name: "left",
     data() {
       return {
-        accountInfo: '',//账户信息
-        coinValue: this.accountInfo ? 0 : -1, //交易对选择 -1:全部 0:自选1:nuls 2:usdi
+        accountInfo: localStorage.hasOwnProperty('accountInfo') ? JSON.parse(localStorage.getItem('accountInfo')) : '',//账户信息
+        coinValue: -1, //交易对选择 -1:全部 0:自选1:nuls 2:usdi
         search: '', //搜索框内容
         radio: '1', //单选选择
+        oldCounterpartyData: [], //交易对历史列表
         counterpartyData: [], //交易对列表
         newestData: [],  //最新成交列表
+        leftInterval: null,
       };
     },
     created() {
       this.getCoinList(this.coinValue);
+      this.coinValue = this.accountInfo.address ? 0 : -1;
     },
     mounted() {
-      setInterval(() => {
-        //this.getCoinList(this.coinValue);
+      this.leftInterval = setInterval(() => {
+        this.getCoinList(this.coinValue);
       }, 10000);
+    },
+    destroyed() {
+      clearInterval(this.leftInterval);
+    },
+    computed: {},
+    watch: {
+      search(newValue) {
+        let newArr = [];
+        if (newValue) {
+          this.counterpartyData = [];
+          for (let item of this.oldCounterpartyData) {
+            if (item.tradingName.includes(newValue.toUpperCase())) {
+              newArr.push(item)
+            }
+          }
+          this.counterpartyData = newArr;
+        } else {
+          this.counterpartyData = this.oldCounterpartyData;
+        }
+      }
     },
     components: {},
     methods: {
@@ -118,16 +143,16 @@
         let url = '/coin/top/list';
         let data = {};
         if (type === -1) {
-          data = {assetChainId: 0, assetId: 0, size: 10, address: ""};
+          data = {assetChainId: 0, assetId: 0, size: 100, address: ""};
         } else if (type === 0) {
-          data = {assetChainId: 0, assetId: 0, size: 0, address: ""};
+          data = {assetChainId: 0, assetId: 0, size: 100, address: this.accountInfo.address};
         } else if (type === 1) {
-          data = {assetChainId: 1, assetId: 1, size: 0, address: ""};
+          data = {assetChainId: 0, assetId: 0, size: 100, address: ""};
         } else if (type === 2) {
-          data = {};
+          data = {assetChainId: 2, assetId: 0, size: 100, address: ""};
         }
         let coinRes = await this.$dexPost(url, data);
-        //console.log(coinRes);
+        console.log(coinRes);
         if (!coinRes.success) {
           this.$message({message: '获取交易对错误:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});
         }
@@ -135,11 +160,13 @@
           item.newPrices = parseFloat(Number(divisionDecimals(item.newPrice, item.quoteDecimal)).toFixed(3));
           //涨跌 = （highPrice24 - lowPrice24）/lowPrice24
           item.upsDowns = parseFloat(Number((item.highPrice24 - item.lowPrice24) === 0 ? 0 : (item.highPrice24 - item.lowPrice24) / item.lowPrice24).toFixed(2));
+          item.dealAmount24 = parseFloat(Number(divisionDecimals(item.dealAmount24, item.quoteDecimal)).toFixed(3));
           if (item.tradingName === 'BTC/NULS') {
             this.choiceDeal(item);
           }
         }
-        this.counterpartyData = coinRes.result
+        this.counterpartyData = coinRes.result;
+        this.oldCounterpartyData = this.counterpartyData
       },
 
       /**
@@ -151,26 +178,6 @@
       choiceDeal(trading) {
         this.$store.commit('setDealData', trading);
         this.getDealList(trading.hash)
-      },
-
-      /**
-       * @disc: 搜索框值改变
-       * @params: value
-       * @date: 2020-01-03 16:52
-       * @author: Wave
-       */
-      changeSearch(value) {
-        console.log(value);
-      },
-
-      /**
-       * @disc: 选择涨幅/成交量
-       * @params: e
-       * @date: 2020-01-03 16:43
-       * @author: Wave
-       */
-      changeRadio(value) {
-        console.log(value);
       },
 
       /**

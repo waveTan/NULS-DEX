@@ -17,11 +17,11 @@
             <div class="m_p_list fl">{{tradingInfo.tradingName}}</div>
             <div class="m_p_list fl">
               <div>最新价</div>
-              <div>{{Number(tradingInfo.newPrices).toFixed(5)}}</div>
+              <div>{{Number(tradingInfo.newPrices)}}</div>
             </div>
             <div class="m_p_list fl">
               <div>24h涨跌</div>
-              <div>{{Number(tradingInfo.upsDowns).toFixed(3)}}%</div>
+              <div>{{Number(tradingInfo.upsDowns)}}%</div>
             </div>
             <div class="m_p_list fl">
               <div>24h最高价</div>
@@ -290,6 +290,8 @@
         pageIndex: 1, //页码
         pageSize: 10, //每页条数
         pageTotal: 0,//总页数
+
+        indexInterval: null,
       };
     },
     created() {
@@ -301,11 +303,14 @@
       if (this.accountInfo.address) {
         this.accountInfo.balances = Number(divisionDecimals(this.accountInfo.balance, 8)).toFixed(3);
         this.getEntrustList(this.accountInfo.address, this.pageIndex, this.pageSize);
-        setInterval(() => {
+        this.indexInterval = setInterval(() => {
           //this.getTradingGet(this.tradingInfo.hash);
           this.getEntrustList(this.accountInfo.address, this.pageIndex, this.pageSize);
         }, 10000);
       }
+    },
+    destroyed() {
+      clearInterval(this.indexInterval);
     },
     components: {LeftBar, ChartBar, RightBar, Password},
     computed: {
@@ -372,7 +377,8 @@
         tradingInfoRes.result.highPrice24s = divisionDecimals(tradingInfoRes.result.highPrice24, tradingInfoRes.result.baseDecimal);
         tradingInfoRes.result.lowPrice24s = divisionDecimals(tradingInfoRes.result.lowPrice24, tradingInfoRes.result.baseDecimal);
         tradingInfoRes.result.quoteMinSize = divisionDecimals(tradingInfoRes.result.quoteMinSize, tradingInfoRes.result.baseDecimal);
-        tradingInfoRes.result.dealAmount24s = divisionDecimals(tradingInfoRes.result.dealAmount24, tradingInfoRes.result.baseDecimal);
+        tradingInfoRes.result.dealAmount24s = parseFloat(Number(divisionDecimals(tradingInfoRes.result.dealAmount24, tradingInfoRes.result.baseDecimal)).toFixed(3));
+        //parseFloat
         tradingInfoRes.result.symbol = tradingInfoRes.result.tradingName.substring(0, tradingInfoRes.result.tradingName.length - 5);
         this.tradingInfo = tradingInfoRes.result;
         this.buyForm.price = tradingInfoRes.result.newPrices;
@@ -403,32 +409,6 @@
           //console.log(this.baseAssetInfo);
         }
         this.tradingInfoLoading = false;
-      },
-
-      /**
-       * @disc: 获取交易对K线图
-       * @params: tradingHash
-       * @date: 2019-12-16 10:41
-       * @author: Wave
-       */
-      async getTradingGet(tradingHash) {
-        let url = '/view/kLine/list';
-        let data = {"tradingHash": tradingHash, "type": 1,};
-        let tradingGetRes = await this.$dexPost(url, data);
-        console.log(tradingGetRes);
-        if (!tradingGetRes.success) {
-          this.$message({message: '获取交易对K线图:' + JSON.stringify(tradingGetRes.data), type: 'error', duration: 3000});
-          return;
-        }
-        for (let item of tradingGetRes.result) {
-          item.time = moment(getLocalTime(item.beginTime)).format('YYYY-MM-DD HH:mm:ss');
-          item.open = Number(divisionDecimals(item.beginPrice, item.baseDecimal)).toFixed(3);
-          item.close = Number(divisionDecimals(item.endPrice, item.baseDecimal)).toFixed(3);
-          item.lowest = Number(divisionDecimals(item.beginPrice, item.baseDecimal)).toFixed(3);
-          item.highest = Number(divisionDecimals(item.endPrice, item.baseDecimal)).toFixed(3);
-          item.vol = Number(item.amount).toFixed(3)
-        }
-        this.chartData.rows = tradingGetRes.result
       },
 
       /**
@@ -511,7 +491,7 @@
        */
       choiceSell(number) {
         this.sellSpan = number;
-        this.sellForm.amount = Times(Number(this.accountInfo.balances), number);
+        this.sellForm.amount = Times(Number(this.baseAssetInfo.balances), number);
         this.sellForm.num = Times(Number(this.sellForm.amount), Number(this.sellForm.price));
       },
 

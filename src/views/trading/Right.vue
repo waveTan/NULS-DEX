@@ -9,7 +9,7 @@
       <div class="fr">
         <span class="font12">深度合并</span>
         <el-select v-model="depthValue" class="depth" :popper-append-to-body="false" @change="changeDepth">
-          <el-option v-for="item in 3" :key="item" :label="item" :value="item">
+          <el-option v-for="item in deepMerger" :key="item" :label="item" :value="item">
           </el-option>
         </el-select>
       </div>
@@ -64,22 +64,28 @@
     data() {
       return {
         coinOrderValue: 0,//交易对订单0：买卖各一半，1：买，2：卖
+        deepMerger: 0,//深度合并
         buyData: [],//买列表
         sellData: [],//卖列表
         orderListLoading: false,
-        depthValue: '1',//深度系数
+        depthValue: 1,//深度系数
+        rightInterval: null,
       };
     },
     created() {
       this.getOrderList(this.$store.getters.getDealData.hash);
+      this.deepMerger = this.$store.getters.getDealData.quoteDecimal;
       if (this.tradingInfo.newPrice) {
         this.tradingInfo.newPrices = Number(divisionDecimals(this.tradingInfo.newPrice, this.tradingInfo.baseDecimal));
       }
     },
     mounted() {
-      setInterval(() => {
-        this.getOrderList(this.$store.getters.getDealData.hash);
+      this.rightInterval = setInterval(() => {
+        this.getOrderList(this.$store.getters.getDealData.hash, this.depthValue);
       }, 10000);
+    },
+    destroyed() {
+      clearInterval(this.rightInterval);
     },
     components: {},
     computed: {
@@ -109,13 +115,14 @@
 
       /**
        * @disc: 获取交易对挂单盘口
-       * @params: type
+       * @params: tradingHash
+       * @params: depthValue
        * @date: 2019-12-13 15:44
        * @author: Wave
        */
-      async getOrderList(tradingHash) {
+      async getOrderList(tradingHash, depthValue) {
         let url = '/order/list/';
-        let data = {"tradingHash": tradingHash, "decimal": 2, "type": 0, "size": 20};
+        let data = {"tradingHash": tradingHash, "decimal": depthValue, "type": 0, "size": 20};
         let coinRes = await this.$dexPost(url, data);
         //console.log(coinRes);
         if (!coinRes.success) {
@@ -144,7 +151,8 @@
        * @author: Wave
        */
       changeDepth(value) {
-        console.log(value)
+        this.depthValue = value;
+        this.getOrderList(this.$store.getters.getDealData.hash, this.depthValue);
       },
 
     }
