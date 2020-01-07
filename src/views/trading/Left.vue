@@ -34,9 +34,11 @@
           <div class="t_td" style="width: 60px;" v-else>成交量</div>
         </div>
         <div class="t_tr cb" v-for="(item,index) in counterpartyData" :key="index" @click="choiceDeal(item)">
-          <div class="t_td clicks" style="width: 50px;text-align: center">
-            <span class="click"><i class="el-icon-star-off"></i></span>
+          <div class="t_td clicks" style="width: 50px;text-align: center" v-if="accountInfo.address">
+            <span class="click" @click="isCollection(item)"><i
+                    :class="item.isCollection === 0 ? 'el-icon-star-off' : 'el-icon-star-on'"></i></span>
           </div>
+          <div class="t_td" style="width: 50px;" v-else>&nbsp;</div>
           <div class="t_td" style="width: 120px;">{{item.tradingName}}</div>
           <div class="t_td" style="width: 70px;">{{item.newPrices}}</div>
           <div class="t_td" style="width: 60px;" v-if="radio ==='1'">{{item.upsDowns}}%</div>
@@ -81,22 +83,27 @@
     data() {
       return {
         accountInfo: localStorage.hasOwnProperty('accountInfo') ? JSON.parse(localStorage.getItem('accountInfo')) : '',//账户信息
-        coinValue: -1, //交易对选择 -1:全部 0:自选1:nuls 2:usdi
+        coinValue: 1, //交易对选择 -1:全部 0:自选1:nuls 2:usdi
         search: '', //搜索框内容
         radio: '1', //单选选择
         oldCounterpartyData: [], //交易对历史列表
         counterpartyData: [], //交易对列表
+        myCoinData: [], //自选列表
         newestData: [],  //最新成交列表
         leftInterval: null,
       };
     },
     created() {
+      if (this.accountInfo.address) {
+        this.getMyCoinList();
+      }
       this.getCoinList(this.coinValue);
-      this.coinValue = this.accountInfo.address ? 0 : -1;
     },
     mounted() {
+
+
       this.leftInterval = setInterval(() => {
-        this.getCoinList(this.coinValue);
+        //this.getCoinList(this.coinValue);
       }, 10000);
     },
     destroyed() {
@@ -134,6 +141,62 @@
       },
 
       /**
+       * @disc: 是否收藏
+       * @params: coinInfo
+       * @date: 2020-01-07 11:32
+       * @author: Wave
+       */
+      isCollection(coinInfo) {
+        if (coinInfo.isCollection === 1) {
+          this.cancelCollection(coinInfo)
+        } else {
+          this.collection(coinInfo)
+        }
+      },
+
+      /**
+       * @disc: 收藏功能
+       * @params: coinInfo
+       * @date: 2020-01-06 16:09
+       * @author: Wave
+       */
+      async collection(coinInfo) {
+        let url = '/coin/collection';
+        let data = {"address": this.accountInfo.address, "tradingHash": coinInfo.hash};
+        let res = await this.$dexPost(url, data);
+        //console.log(res);
+        if (res.success) {
+          this.$message({message: '收藏完成', type: 'success', duration: 1000});
+          for (let item of this.counterpartyData) {
+            if (item.tradingName === coinInfo.tradingName) {
+              item.isCollection = 1;
+            }
+          }
+        }
+      },
+
+      /**
+       * @disc: 取消收藏功能
+       * @params: coinInfo
+       * @date: 2020-01-06 16:09
+       * @author: Wave
+       */
+      async cancelCollection(coinInfo) {
+        let url = '/coin/collection/cancel';
+        let data = {"address": this.accountInfo.address, "tradingHash": coinInfo.hash};
+        let res = await this.$dexPost(url, data);
+        //console.log(res);
+        if (res.success) {
+          this.$message({message: '取消收藏完成', type: 'success', duration: 1000});
+          for (let item of this.counterpartyData) {
+            if (item.tradingName === coinInfo.tradingName) {
+              item.isCollection = 0;
+            }
+          }
+        }
+      },
+
+      /**
        * @disc: 获取交易对
        * @params: type
        * @date: 2019-12-13 15:44
@@ -142,31 +205,69 @@
       async getCoinList(type) {
         let url = '/coin/top/list';
         let data = {};
+        let coinRes = {};
         if (type === -1) {
           data = {assetChainId: 0, assetId: 0, size: 100, address: ""};
         } else if (type === 0) {
-          data = {assetChainId: 0, assetId: 0, size: 100, address: this.accountInfo.address};
+          coinRes = await this.getMyCoinList();
         } else if (type === 1) {
           data = {assetChainId: 0, assetId: 0, size: 100, address: ""};
         } else if (type === 2) {
           data = {assetChainId: 2, assetId: 0, size: 100, address: ""};
         }
-        let coinRes = await this.$dexPost(url, data);
-        console.log(coinRes);
+
+        if (type !== 0) {
+          coinRes = await this.$dexPost(url, data);
+        }
+
+        //console.log(coinRes);
         if (!coinRes.success) {
           this.$message({message: '获取交易对错误:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});
         }
+
         for (let item of coinRes.result) {
           item.newPrices = parseFloat(Number(divisionDecimals(item.newPrice, item.quoteDecimal)).toFixed(3));
           //涨跌 = （highPrice24 - lowPrice24）/lowPrice24
           item.upsDowns = parseFloat(Number((item.highPrice24 - item.lowPrice24) === 0 ? 0 : (item.highPrice24 - item.lowPrice24) / item.lowPrice24).toFixed(2));
           item.dealAmount24 = parseFloat(Number(divisionDecimals(item.dealAmount24, item.quoteDecimal)).toFixed(3));
+          item.isCollection = 0;//是否收藏 0:没收藏 1:收藏
+
+          if (type === 0) {
+            item.isCollection = 1;
+          } else {
+            for (let k of this.myCoinData) {
+              if (k.tradingName === item.tradingName) {
+                item.isCollection = 1
+              }
+            }
+          }
+
           if (item.tradingName === 'BTC/NULS') {
             this.choiceDeal(item);
           }
         }
         this.counterpartyData = coinRes.result;
-        this.oldCounterpartyData = this.counterpartyData
+        this.oldCounterpartyData = this.counterpartyData;
+
+      },
+
+      /**
+       * @disc: 获取自选交易对
+       * @params: type
+       * @date: 2019-12-13 15:44
+       * @author: Wave
+       */
+      async getMyCoinList() {
+        let url = '/coin/collections';
+        let data = {assetChainId: 0, assetId: 0, size: 100, address: this.accountInfo.address};
+        let coinRes = await this.$dexPost(url, data);
+        //console.log(coinRes);
+        if (!coinRes.success) {
+          this.$message({message: '获取自选交易对错误:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});
+          return {success: false, data: coinRes}
+        }
+        this.myCoinData = coinRes.result;
+        return coinRes;
       },
 
       /**

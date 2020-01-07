@@ -185,7 +185,7 @@
             </el-table-column>
             <el-table-column align="center" label="操作" width="110">
               <template slot-scope="scope">
-                <el-link type="primary" class="font12">撤销</el-link>
+                <el-link type="primary" class="font12" @click="revoke(scope.row)">撤销</el-link>
               </template>
             </el-table-column>
           </el-table>
@@ -630,6 +630,16 @@
           item.ratio = parseFloat(Number(Division(Number(item.dealNumber), Number(item.number))).toFixed(4));
         }
         this.entrustData = entrustListRes.result.list
+      },
+
+      /**
+       * @disc: 撤销委托
+       * @params:  tradingInfo
+       * @date: 2020-01-06 15:30
+       * @author: Wave
+       */
+      revoke(tradingInfo) {
+        console.log(tradingInfo);
       },
 
     }
