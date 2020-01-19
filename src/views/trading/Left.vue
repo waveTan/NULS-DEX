@@ -77,6 +77,8 @@
 <script>
   import moment from 'moment'
   import {divisionDecimals, getLocalTime} from '@/api/util'
+  import {WEBSOCKET_URL} from "@/config.js";
+  import {listener, unListener} from "@/api/websocket.js";
 
   export default {
     name: "left",
@@ -90,7 +92,7 @@
         counterpartyData: [], //交易对列表
         myCoinData: [], //自选列表
         newestData: [],  //最新成交列表
-        leftInterval: null,
+        tradingHash: '',
       };
     },
     created() {
@@ -101,13 +103,9 @@
     },
     mounted() {
 
-
-      this.leftInterval = setInterval(() => {
-        //this.getCoinList(this.coinValue);
-      }, 10000);
     },
     destroyed() {
-      clearInterval(this.leftInterval);
+      unListener(WEBSOCKET_URL, "deal");
     },
     computed: {},
     watch: {
@@ -124,7 +122,7 @@
         } else {
           this.counterpartyData = this.oldCounterpartyData;
         }
-      }
+      },
     },
     components: {},
     methods: {
@@ -277,24 +275,37 @@
        * @author: Wave
        */
       choiceDeal(trading) {
+        //console.log(trading);
         this.$store.commit('setDealData', trading);
-        this.getDealList(trading.hash)
+        this.getDealList(trading.hash);
+        unListener(WEBSOCKET_URL, "deal");
+        listener(WEBSOCKET_URL, "deal", JSON.stringify({"tradingHash": trading.hash,"size":20}),
+          data => {
+            //console.log(data);
+            this.getDealList(trading.hash, 1, {result: JSON.parse(data)});
+          });
       },
 
       /**
        * @disc: 获取最新成交列表
        * @params: tradingHash
+       * @params: type 0：查询数据 1：websoket推送数据
+       * @params: dataInfo
        * @date: 2019-12-13 15:44
        * @author: Wave
        */
-      async getDealList(tradingHash) {
-        let url = 'deal/list/trading';
-        let data = {"tradingHash": tradingHash, "size": 20};
-        let coinRes = await this.$dexPost(url, data);
-        //console.log(coinRes);
-        if (!coinRes.success) {
-          this.$message({message: '获取最新成交列表:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});
+      async getDealList(tradingHash, type = 0, dataInfo = {}) {
+        let coinRes = dataInfo;
+        if (type === 0) {
+          let url = 'deal/list/trading';
+          let data = {"tradingHash": tradingHash, "size": 20};
+          coinRes = await this.$dexPost(url, data);
+          //console.log(coinRes);
+          if (!coinRes.success) {
+            this.$message({message: '获取最新成交列表:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});
+          }
         }
+        //console.log(coinRes);
         for (let item of coinRes.result) {
           item.prices = parseFloat(Number(divisionDecimals(item.price, item.baseDecimal)).toFixed(3));
           item.number = parseFloat(Number(divisionDecimals(item.baseAmount, item.baseDecimal)).toFixed(3));

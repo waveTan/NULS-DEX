@@ -53,6 +53,8 @@
 
 <script>
   import {divisionDecimals, Times, Division} from '@/api/util.js'
+  import {WEBSOCKET_URL} from "@/config.js";
+  import {listener, unListener} from "@/api/websocket.js";
 
   export default {
     props: {
@@ -73,15 +75,16 @@
       };
     },
     created() {
-      this.getOrderList(this.$store.getters.getDealData.hash);
-      this.deepMerger = this.$store.getters.getDealData.quoteDecimal;
+      this.tradingInfo = this.$store.getters.getDealData;
+      this.getOrderList(this.tradingInfo.hash, this.depthValue);
+      this.deepMerger = this.tradingInfo.quoteDecimal;
       if (this.tradingInfo.newPrice) {
         this.tradingInfo.newPrices = Number(divisionDecimals(this.tradingInfo.newPrice, this.tradingInfo.baseDecimal));
       }
     },
     mounted() {
       this.rightInterval = setInterval(() => {
-        this.getOrderList(this.$store.getters.getDealData.hash, this.depthValue);
+        //this.getOrderList(this.$store.getters.getDealData.hash, this.depthValue);
       }, 10000);
     },
     destroyed() {
@@ -97,9 +100,27 @@
       tradingName: function () {
         this.tradingInfo = this.$store.getters.getDealData;
         this.tradingInfo.symbol = this.tradingInfo.tradingName.substring(0, this.tradingInfo.tradingName.length - 5);
-        this.getOrderList(this.tradingInfo.hash);
-        this.orderListLoading = true;
-      }
+        //this.getOrderList(this.tradingInfo.hash);
+        unListener(WEBSOCKET_URL, "order");
+        console.log({
+          "tradingHash": this.tradingInfo.hash,
+          "decimal": this.depthValue,
+          "size": 20,
+          "type": 0
+        });
+        listener(WEBSOCKET_URL, "order", JSON.stringify({
+            "tradingHash": this.tradingInfo.hash,
+            "decimal": this.depthValue,
+            "size": 20,
+            "type": 0
+          }),
+          data => {
+
+            console.log(data);
+            this.getOrderList(this.tradingInfo.hash, this.depthValue, 1, {result: JSON.parse(data)});
+          });
+        //this.orderListLoading = true;
+      },
     },
     methods: {
 
@@ -116,18 +137,23 @@
       /**
        * @disc: 获取交易对挂单盘口
        * @params: tradingHash
-       * @params: depthValue
+       * @params: depthValue 精度系数
+       * @params: type 0：接口查询 1：websocket推送
+       * @params: dataInfo
        * @date: 2019-12-13 15:44
        * @author: Wave
        */
-      async getOrderList(tradingHash, depthValue) {
-        let url = '/order/list/';
-        let data = {"tradingHash": tradingHash, "decimal": depthValue, "type": 0, "size": 20};
-        let coinRes = await this.$dexPost(url, data);
-        //console.log(coinRes);
-        if (!coinRes.success) {
-          this.$message({message: '获取交易对挂单错误:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});
+      async getOrderList(tradingHash, depthValue, type = 0, dataInfo = {}) {
+        let coinRes = dataInfo;
+        if (type === 0) {
+          let url = '/order/list/';
+          let data = {"tradingHash": tradingHash, "decimal": depthValue, "type": 0, "size": 20};
+          coinRes = await this.$dexPost(url, data);
+          if (!coinRes.success) {
+            this.$message({message: '获取交易对挂单错误:' + JSON.stringify(coinRes.data), type: 'error', duration: 3000});
+          }
         }
+        //console.log(coinRes);
         for (let item of coinRes.result.buyOrderList) {
           //console.log(item);
           item.prices = parseFloat(Number(divisionDecimals(item.price, item.quoteDecimal)).toFixed(5));

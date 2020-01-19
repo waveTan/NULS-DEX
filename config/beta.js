@@ -16,6 +16,8 @@ export const API_PREFIX = 'tNULS';
 export let API_URL = IS_DEV ? 'https://beta.wallet.nuls.io/api' : 'http://192.168.1.160:18004/jsonrpc';
 //dex 网络api
 export let DEX_URL = IS_DEV ? 'http://192.168.1.160:8081' : 'http://192.168.1.160:8081';
+//websocket api
+export let WEBSOCKET_URL = IS_DEV ? 'ws://192.168.1.160:8081/ws' : 'ws://192.168.1.160:8081/ws';
 //请求最迟时间
 export const API_TIME = '8000';
 //浏览器连接地址

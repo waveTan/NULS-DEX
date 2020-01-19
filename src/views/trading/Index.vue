@@ -218,6 +218,9 @@
     Division
   } from '@/api/util.js'
   import {getBaseAssetInfo, validateAndBroadcast} from '@/api/requestData.js'
+  import {WEBSOCKET_URL} from "@/config.js";
+  import {listener, unListener} from "@/api/websocket.js";
+  //import {createSocket, sendWSPush} from '@/api/websocket'
 
   export default {
     data() {
@@ -311,6 +314,7 @@
     },
     destroyed() {
       clearInterval(this.indexInterval);
+      unListener(WEBSOCKET_URL, "trading");
     },
     components: {LeftBar, ChartBar, RightBar, Password},
     computed: {
@@ -354,6 +358,18 @@
           this.buyForm.num = oldVal;
           return;
         }*/
+      },
+
+      "tradingInfo.hash"(newValue, oldValue) {
+        //console.log(newValue,oldValue);
+        if (newValue !== oldValue) {
+          unListener(WEBSOCKET_URL, "trading");
+          listener(WEBSOCKET_URL, "trading", JSON.stringify({"tradingHash": this.tradingInfo.hash}),
+            data => {
+              //console.log(JSON.parse(data));
+              this.getTradingInfo(this.tradingInfo.hash, 1, {result: JSON.parse(data)});
+            });
+        }
       }
     },
     methods: {
@@ -361,16 +377,21 @@
       /**
        * @disc: 获取交易对详情
        * @params: tradingHash
+       * @params: type 0:进入界面查询数据 1：websocket查询后的数据
+       * @params: res
        * @date: 2019-12-16 10:41
        * @author: Wave
        */
-      async getTradingInfo(tradingHash) {
-        let url = '/coin/trading/get/' + tradingHash;
-        let tradingInfoRes = await this.$dexGet(url);
-        //console.log(tradingInfoRes);
-        if (!tradingInfoRes.success) {
-          this.$message({message: '获取交易对错误:' + JSON.stringify(tradingInfoRes.data), type: 'error', duration: 3000});
-          return;
+      async getTradingInfo(tradingHash, type = 0, res = {}) {
+        let tradingInfoRes = res;
+        if (type === 0) {
+          let url = '/coin/trading/get/' + tradingHash;
+          tradingInfoRes = await this.$dexGet(url);
+          console.log(tradingInfoRes);
+          if (!tradingInfoRes.success) {
+            this.$message({message: '获取交易对错误:' + JSON.stringify(tradingInfoRes.data), type: 'error', duration: 3000});
+            return;
+          }
         }
         tradingInfoRes.result.newPrices = divisionDecimals(tradingInfoRes.result.newPrice, tradingInfoRes.result.baseDecimal);
         tradingInfoRes.result.upsDowns = tradingInfoRes.result.highPrice24 - tradingInfoRes.result.lowPrice24 === 0 ? 0 : (tradingInfoRes.result.highPrice24 - tradingInfoRes.result.lowPrice24) / tradingInfoRes.result.lowPrice24;
@@ -381,8 +402,10 @@
         //parseFloat
         tradingInfoRes.result.symbol = tradingInfoRes.result.tradingName.substring(0, tradingInfoRes.result.tradingName.length - 5);
         this.tradingInfo = tradingInfoRes.result;
-        this.buyForm.price = tradingInfoRes.result.newPrices;
-        this.sellForm.price = tradingInfoRes.result.newPrices;
+        if (type === 0) {
+          this.buyForm.price = tradingInfoRes.result.newPrices;
+          this.sellForm.price = tradingInfoRes.result.newPrices;
+        }
 
         if (this.accountInfo.address) {
           let quoteAssetByAddress = await getBaseAssetInfo(this.tradingInfo.quoteAssetChainId, this.tradingInfo.quoteAssetId, this.accountInfo.address);
@@ -684,7 +707,7 @@
           }
         }
         .m_middle {
-          height: 390px;
+          height: 380px;
           width: 100%;
         }
         .m_footer {
