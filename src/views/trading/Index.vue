@@ -153,7 +153,7 @@
       <div class="footer cd" v-show="accountInfo.address">
         <div class="title font12">
           <span class="fwhite">当前委托</span>
-          <font class="fr fwhite">全部订单<i class="el-icon-d-arrow-right"></i></font>
+          <font class="fr fwhite click" @click="toUrl('user','order')">全部订单<i class="el-icon-d-arrow-right"></i></font>
         </div>
         <div class="table cb">
           <el-table :data="entrustData" stripe style="width: 100%" class="entrust">
@@ -265,9 +265,9 @@
 
         orderType: 1,  //委托挂单类型 1:买单，2:卖单
         buyForm: {
-          price: '',
-          num: '0',
-          amount: '',
+          price: 0,
+          num: 0,
+          amount: 0,
         },
         buyRules: {
           name: [
@@ -330,29 +330,29 @@
         this.tradingInfoLoading = true;
 
         this.buySpan = 0;
-        this.buyForm.num = '0';
-        this.buyForm.amount = '';
+        this.buyForm.num = 0;
+        this.buyForm.amount = 0;
 
         this.sellSpan = 0;
         this.sellForm.num = '0';
         this.sellForm.amount = ''
       },
       'buyForm.price': function () {
-        this.buyForm.amount = Times(this.buyForm.num, this.buyForm.price);
+        //this.buyForm.amount = Times(this.buyForm.num, this.buyForm.price);
         // 解决数字键盘可以输入输入多个小数点问题
       },
       'buyForm.num': function () {
         // console.log(newVal, oldVal);
-        this.buyForm.amount = Times(this.buyForm.num, this.buyForm.price);
+        //this.buyForm.amount = Times(this.buyForm.num, this.buyForm.price);
         // 解决数字键盘可以输入输入多个小数点问题
       },
       'sellForm.price': function () {
-        this.sellForm.amount = Times(this.sellForm.num, this.sellForm.price);
+        //this.sellForm.amount = Times(this.sellForm.num, this.sellForm.price);
         // 解决数字键盘可以输入输入多个小数点问题
       },
       'sellForm.num': function () {
         //console.log(newVal, oldVal);
-        this.sellForm.amount = Times(this.sellForm.num, this.sellForm.price);
+        //this.sellForm.amount = Times(this.sellForm.num, this.sellForm.price);
         // 解决数字键盘可以输入输入多个小数点问题
         /*if (newVal === '' && oldVal.toString().indexOf('.') > 0) {
           this.buyForm.num = oldVal;
@@ -442,8 +442,8 @@
        */
       choiceBuy(num) {
         this.buySpan = num;
-        this.buyForm.amount = Number(Times(Number(this.quoteAssetInfo.balances), num)).toString();
-        this.buyForm.num = Number(Times(Number(this.buyForm.amount), Number(this.buyForm.price))).toString();
+        this.buyForm.amount = Number(Times(Number(this.quoteAssetInfo.balances), num));
+        this.buyForm.num = Number(Times(Number(this.buyForm.amount), Number(this.buyForm.price)));
       },
 
       /**
@@ -663,6 +663,18 @@
        */
       revoke(tradingInfo) {
         console.log(tradingInfo);
+      },
+
+      /**
+       * 连接跳转
+       * @param name
+       * @param parameter
+       */
+      async toUrl(name, parameter) {
+        this.$router.push({
+          name: name,
+          query: {orderID:parameter}
+        })
       },
 
     }

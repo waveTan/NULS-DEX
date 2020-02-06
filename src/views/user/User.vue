@@ -31,6 +31,9 @@
       }
     },
     created() {
+      if (this.$route.query.orderID) {
+        this.userTab = "order"
+      }
       this.addressInfoByAddress(this.accountInfo.address);
     },
     mounted() {

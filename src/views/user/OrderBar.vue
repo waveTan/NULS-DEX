@@ -2,13 +2,13 @@
   <div class="order_bar w1400">
     <el-tabs v-model="orderTab" @tab-click="orderTabsClick" class="order_tab">
       <el-tab-pane label="当前委托" name="currentEntrust" class="current_entrust">
-        <div class="mt_20">
+        <div class="mt_100" style="margin-bottom: 100px">
           <el-table :data="entrustData">
             <el-table-column prop="hashs" label="交易HASH" width="150" align="center">
             </el-table-column>
-            <el-table-column prop="time" label="时间" width="160" align="center">
+            <el-table-column prop="time" label="时间" width="170" align="center">
             </el-table-column>
-            <el-table-column prop="tradingName" label="交易对" width="100" align="center">
+            <el-table-column prop="tradingName" label="交易对" width="110" align="center">
             </el-table-column>
             <el-table-column label="方向" width="80" align="center">
               <template slot-scope="scope">
@@ -36,6 +36,15 @@
               </template>
             </el-table-column>
           </el-table>
+
+          <el-pagination
+                  @size-change="handleSizeChange"
+                  @current-change="handleCurrentChange"
+                  :current-page.sync="currentPage3"
+                  :page-size="100"
+                  layout="prev, pager, next, jumper"
+                  :total="1000" class="page">
+          </el-pagination>
         </div>
       </el-tab-pane>
       <el-tab-pane label="历史成交" name="historyDeal" class="history_deal">
@@ -429,6 +438,10 @@
           }
         }
       }
+    }
+    .page{
+      text-align: center;
+      margin: 10px 0 0 0;
     }
   }
 </style>
