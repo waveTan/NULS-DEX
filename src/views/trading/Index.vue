@@ -217,7 +217,12 @@
     superLong,
     Division
   } from '@/api/util.js'
-  import {getBaseAssetInfo, validateAndBroadcast} from '@/api/requestData.js'
+  import {
+    getBaseAssetInfo,
+    validateAndBroadcast,
+    revokeCoinData,
+    getBalanceOrNonceByAddress
+  } from '@/api/requestData.js'
   import {WEBSOCKET_URL} from "@/config.js";
   import {listener, unListener} from "@/api/websocket.js";
   //import {createSocket, sendWSPush} from '@/api/websocket'
@@ -293,14 +298,19 @@
         pageIndex: 1, //页码
         pageSize: 10, //每页条数
         pageTotal: 0,//总页数
+        passwordType: 0,//输入密码后的提交类型0:委托1:撤销委托
+        revokeInfo: {},//撤销委托信息
+        coinTrading: {},//交易对详情
 
         indexInterval: null,
       };
     },
     created() {
       this.accountInfo = localStorage.hasOwnProperty('accountInfo') ? JSON.parse(localStorage.getItem('accountInfo')) : {};
-      this.tradingInfo = this.$store.getters.getDealData;
-      this.getTradingInfo(this.tradingInfo.hash);
+      setTimeout(() => {
+        this.tradingInfo = this.$store.getters.getDealData;
+        this.getTradingInfo(this.tradingInfo.hash);
+      }, 500)
     },
     mounted() {
       if (this.accountInfo.address) {
@@ -338,21 +348,30 @@
         this.sellForm.amount = ''
       },
       'buyForm.price': function () {
-        //this.buyForm.amount = Times(this.buyForm.num, this.buyForm.price);
+        if (this.buySpan === 0) {
+          this.buyForm.amount = Times(this.buyForm.num, this.buyForm.price);
+        }
         // 解决数字键盘可以输入输入多个小数点问题
       },
       'buyForm.num': function () {
         // console.log(newVal, oldVal);
+        if (this.buySpan === 0) {
+          this.buyForm.amount = Times(this.buyForm.num, this.buyForm.price);
+        }
         //this.buyForm.amount = Times(this.buyForm.num, this.buyForm.price);
         // 解决数字键盘可以输入输入多个小数点问题
       },
       'sellForm.price': function () {
-        //this.sellForm.amount = Times(this.sellForm.num, this.sellForm.price);
+        if (this.sellSpan === 0) {
+          this.sellForm.amount = Times(this.sellForm.num, this.sellForm.price);
+        }
         // 解决数字键盘可以输入输入多个小数点问题
       },
       'sellForm.num': function () {
         //console.log(newVal, oldVal);
-        //this.sellForm.amount = Times(this.sellForm.num, this.sellForm.price);
+        if (this.sellSpan === 0) {
+          this.sellForm.amount = Times(this.sellForm.num, this.sellForm.price);
+        }
         // 解决数字键盘可以输入输入多个小数点问题
         /*if (newVal === '' && oldVal.toString().indexOf('.') > 0) {
           this.buyForm.num = oldVal;
@@ -387,11 +406,12 @@
         if (type === 0) {
           let url = '/coin/trading/get/' + tradingHash;
           tradingInfoRes = await this.$dexGet(url);
-          console.log(tradingInfoRes);
+          //console.log(tradingInfoRes);
           if (!tradingInfoRes.success) {
-            this.$message({message: '获取交易对错误:' + JSON.stringify(tradingInfoRes.data), type: 'error', duration: 3000});
+            this.$message({message: '获取交易对错误:' + JSON.stringify(tradingInfoRes), type: 'error', duration: 3000});
             return;
           }
+          this.coinTrading = tradingInfoRes.result;
         }
         tradingInfoRes.result.newPrices = divisionDecimals(tradingInfoRes.result.newPrice, tradingInfoRes.result.baseDecimal);
         tradingInfoRes.result.upsDowns = tradingInfoRes.result.highPrice24 - tradingInfoRes.result.lowPrice24 === 0 ? 0 : (tradingInfoRes.result.highPrice24 - tradingInfoRes.result.lowPrice24) / tradingInfoRes.result.lowPrice24;
@@ -456,6 +476,7 @@
         this.$refs[formName].validate((valid) => {
           if (valid) {
             this.orderType = 1;
+            this.passwordType = 0;
             this.$refs.password.showPassword(true);
           } else {
             return false;
@@ -477,19 +498,54 @@
         }
         let addressInfo = {pri: passwordInfo.pri, pub: passwordInfo.pub, type: 29};
         let defaultAsset = {assetsChainId: 2, assetsId: 1};
-        let amount = this.orderType === 1 ? this.buyForm.amount : this.sellForm.num;
-        let price = this.orderType === 1 ? this.buyForm.price : this.sellForm.price;
-        let tradingOrderInfo = {
-          tradingHash: this.tradingInfo.hash,    //委托挂单hash
-          address: this.accountInfo.address,        //撤销挂单委托人
-          orderType: this.orderType,  //委托挂单类型 1:买单，2:卖单
-          assetsChainId: this.orderType === 1 ? this.tradingInfo.quoteAssetChainId : this.tradingInfo.baseAssetChainId,
-          assetsId: this.orderType === 1 ? this.tradingInfo.quoteAssetId : this.tradingInfo.baseAssetId,
-          amount: Number(timesDecimals(amount, this.orderType === 1 ? this.tradingInfo.quoteDecimal : this.tradingInfo.baseDecimal)),   //挂单金额
-          price: Number(timesDecimals(price, this.orderType === 1 ? this.tradingInfo.quoteDecimal : this.tradingInfo.baseDecimal))  //单价
-        };
-        //console.log(tradingOrderInfo);
-        let txHex = await this.tradingOrder(tradingOrderInfo, defaultAsset, addressInfo);
+        let txHex = {};
+        if (this.passwordType === 0) {
+          let amount = this.orderType === 1 ? this.buyForm.amount : this.sellForm.num;
+          let price = this.orderType === 1 ? this.buyForm.price : this.sellForm.price;
+          let tradingOrderInfo = {
+            tradingHash: this.tradingInfo.hash,    //委托挂单hash
+            address: this.accountInfo.address,        //撤销挂单委托人
+            orderType: this.orderType,  //委托挂单类型 1:买单，2:卖单
+            assetsChainId: this.orderType === 1 ? this.tradingInfo.quoteAssetChainId : this.tradingInfo.baseAssetChainId,
+            assetsId: this.orderType === 1 ? this.tradingInfo.quoteAssetId : this.tradingInfo.baseAssetId,
+            amount: Number(timesDecimals(amount, this.orderType === 1 ? this.tradingInfo.quoteDecimal : this.tradingInfo.baseDecimal)),   //挂单金额
+            price: Number(timesDecimals(price, this.orderType === 1 ? this.tradingInfo.quoteDecimal : this.tradingInfo.baseDecimal))  //单价
+          };
+          //console.log(tradingOrderInfo);
+          txHex = await this.tradingOrder(tradingOrderInfo, defaultAsset, addressInfo);
+        } else {
+          let url = '/order/cancel/info/' + this.revokeInfo.hash;
+          let getRevokeNonceRes = await this.$dexGet(url);
+          if (!getRevokeNonceRes.success) {
+            this.$message({
+              message: '获取取消委托nonce错误：' + JSON.stringify(getRevokeNonceRes),
+              type: 'error',
+              duration: 3000
+            });
+            return
+          }
+          //console.log(getRevokeNonceRes);
+
+          //console.log(this.revokeInfo);
+          addressInfo.remark = 'cancel tradingOrder....';
+          addressInfo.type = 30;
+          addressInfo.fee = 100000;
+
+          //正常情况，这个数据是通过查询orderHash的nonce值接口查询到
+          let tradingOrderInfo = {
+            orderHash: this.revokeInfo.hash,    //委托挂单hash
+            address: this.revokeInfo.address,        //撤销挂单委托人
+            orderType: this.revokeInfo.type,            //委托挂单类型 1:买单，2:卖单
+            nonce: getRevokeNonceRes.result.orderCancelInfo.nonce,//通过解决接口查询nonce
+            leftAmount: getRevokeNonceRes.result.orderCancelInfo.leftAmount  //撤销金额
+          };
+          //console.log(tradingOrderInfo);
+
+          //console.log(this.coinTrading);
+          txHex = await this.tradingOrderCancel(tradingOrderInfo, getRevokeNonceRes.result.coinTradingInfo, addressInfo, defaultAsset);
+          //console.log(txHex);
+        }
+
         if (!txHex.success) {
           this.$message({message: '交易签名错误:' + JSON.stringify(txHex.data), type: 'error', duration: 3000});
           return;
@@ -528,6 +584,7 @@
         this.$refs[formName].validate((valid) => {
           if (valid) {
             this.orderType = 2;
+            this.passwordType = 0;
             this.$refs.password.showPassword(true);
           } else {
             return false;
@@ -662,7 +719,35 @@
        * @author: Wave
        */
       revoke(tradingInfo) {
-        console.log(tradingInfo);
+        this.revokeInfo = tradingInfo;
+        this.passwordType = 1;
+        this.$refs.password.showPassword(true);
+      },
+
+      /**
+       * 撤销委托交易组装
+       * @param tradingOrderInfo
+       * @param coinTrading
+       * @param addressInfo
+       */
+      async tradingOrderCancel(tradingOrderInfo, coinTrading, addressInfo, defaultAsset) {
+        let inOrOutputs = await revokeCoinData(tradingOrderInfo, coinTrading, defaultAsset);
+        //console.log(inOrOutputs);
+        //交易组装
+        let tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, addressInfo.remark, addressInfo.type, tradingOrderInfo);
+        //console.log(tAssemble);
+        //获取hash
+        let hash = await tAssemble.getHash();
+        //console.log(hash);
+        //交易签名
+        let txSignature = await sdk.getSignData(hash.toString('hex'), addressInfo.pri);
+        //console.log(txSignature);
+        //通过拼接签名、公钥获取HEX
+        let signData = await sdk.appSplicingPub(txSignature.signValue, addressInfo.pub);
+        tAssemble.signatures = signData;
+        let txhex = tAssemble.txSerialize().toString("hex");
+        //console.log(txhex.toString('hex'));
+        return {success: true, data: txhex.toString('hex')}
       },
 
       /**
@@ -673,7 +758,7 @@
       async toUrl(name, parameter) {
         this.$router.push({
           name: name,
-          query: {orderID:parameter}
+          query: {orderID: parameter}
         })
       },
 

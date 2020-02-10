@@ -61,12 +61,14 @@
           <div class="t_td" style="width: 100px;">数量</div>
           <div class="t_td" style="width: 100px;">时间</div>
         </div>
-        <div class="t_tr cb" v-for="(item,index) in newestData" :key="index">
-          <div class="t_td" style="width: 100px;padding: 0 0 0 10px">
-            <span class="fCN">{{item.prices}}</span>
+        <div class="scroll" style="width: 300px;height: 460px; overflow: auto">
+          <div class="t_tr cb" v-for="(item,index) in newestData" :key="index">
+            <div class="t_td" style="width: 100px;padding: 0 0 0 10px">
+              <span class="fCN">{{item.prices}}</span>
+            </div>
+            <div class="t_td" style="width: 100px;">{{item.number}}</div>
+            <div class="t_td" style="width: 100px;">{{item.time}}</div>
           </div>
-          <div class="t_td" style="width: 100px;">{{item.number}}</div>
-          <div class="t_td" style="width: 100px;">{{item.time}}</div>
         </div>
       </div>
     </div>
@@ -279,7 +281,7 @@
         this.$store.commit('setDealData', trading);
         this.getDealList(trading.hash);
         unListener(WEBSOCKET_URL, "deal");
-        listener(WEBSOCKET_URL, "deal", JSON.stringify({"tradingHash": trading.hash,"size":20}),
+        listener(WEBSOCKET_URL, "deal", JSON.stringify({"tradingHash": trading.hash, "size": 20}),
           data => {
             //console.log(data);
             this.getDealList(trading.hash, 1, {result: JSON.parse(data)});
@@ -309,7 +311,7 @@
         for (let item of coinRes.result) {
           item.prices = parseFloat(Number(divisionDecimals(item.price, item.baseDecimal)).toFixed(3));
           item.number = parseFloat(Number(divisionDecimals(item.baseAmount, item.baseDecimal)).toFixed(3));
-          item.time = moment(getLocalTime(item.createTime)).format('MM-DD HH:mm:ss');
+          item.time = moment(getLocalTime(item.createTime)).format('MM-DD HH:mm');
         }
         this.newestData = coinRes.result;
       },

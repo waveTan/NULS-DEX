@@ -75,12 +75,14 @@
       };
     },
     created() {
-      this.tradingInfo = this.$store.getters.getDealData;
-      this.getOrderList(this.tradingInfo.hash, this.depthValue);
-      this.deepMerger = this.tradingInfo.quoteDecimal;
-      if (this.tradingInfo.newPrice) {
-        this.tradingInfo.newPrices = Number(divisionDecimals(this.tradingInfo.newPrice, this.tradingInfo.baseDecimal));
-      }
+      setTimeout(() => {
+        this.tradingInfo = this.$store.getters.getDealData;
+        this.getOrderList(this.tradingInfo.hash, this.depthValue);
+        this.deepMerger = this.tradingInfo.quoteDecimal;
+        if (this.tradingInfo.newPrice) {
+          this.tradingInfo.newPrices = Number(divisionDecimals(this.tradingInfo.newPrice, this.tradingInfo.baseDecimal));
+        }
+      }, 600)
     },
     mounted() {
       this.rightInterval = setInterval(() => {
@@ -102,12 +104,12 @@
         this.tradingInfo.symbol = this.tradingInfo.tradingName.substring(0, this.tradingInfo.tradingName.length - 5);
         //this.getOrderList(this.tradingInfo.hash);
         unListener(WEBSOCKET_URL, "order");
-        console.log({
+        /*console.log({
           "tradingHash": this.tradingInfo.hash,
           "decimal": this.depthValue,
           "size": 20,
           "type": 0
-        });
+        });*/
         listener(WEBSOCKET_URL, "order", JSON.stringify({
             "tradingHash": this.tradingInfo.hash,
             "decimal": this.depthValue,

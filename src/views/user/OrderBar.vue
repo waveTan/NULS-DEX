@@ -2,7 +2,7 @@
   <div class="order_bar w1400">
     <el-tabs v-model="orderTab" @tab-click="orderTabsClick" class="order_tab">
       <el-tab-pane label="当前委托" name="currentEntrust" class="current_entrust">
-        <div class="mt_100" style="margin-bottom: 100px">
+        <div class="mt_20">
           <el-table :data="entrustData">
             <el-table-column prop="hashs" label="交易HASH" width="150" align="center">
             </el-table-column>
@@ -36,15 +36,6 @@
               </template>
             </el-table-column>
           </el-table>
-
-          <el-pagination
-                  @size-change="handleSizeChange"
-                  @current-change="handleCurrentChange"
-                  :current-page.sync="currentPage3"
-                  :page-size="100"
-                  layout="prev, pager, next, jumper"
-                  :total="1000" class="page">
-          </el-pagination>
         </div>
       </el-tab-pane>
       <el-tab-pane label="历史成交" name="historyDeal" class="history_deal">
@@ -137,6 +128,11 @@
           </el-table>
         </div>
       </el-tab-pane>
+
+      <el-pagination @current-change="pageCurrent" :page-size="pageSize" :total="pageTotal"
+                     layout="prev, pager, next, jumper"
+                     class="page" v-show="pageTotal > pageSize+1">
+      </el-pagination>
     </el-tabs>
   </div>
 </template>
@@ -198,7 +194,7 @@
         historicalData: [], //历史成交列表
         historyEntrustData: [],//历史委托列表
         pageIndex: 1, //页码
-        pageSize: 10, //每页条数
+        pageSize: 15, //每页条数
         pageTotal: 0,//总页数
       }
     },
@@ -223,6 +219,7 @@
        * @author: Wave
        */
       orderTabsClick(tab) {
+        this.orderTab = tab.name;
         if (tab.name === 'currentEntrust') {
           this.getEntrustList(this.accountInfo.address, this.pageIndex, this.pageSize);
         } else if (tab.name === 'historyDeal') {
@@ -255,6 +252,7 @@
             duration: 3000
           });
         }
+        this.pageTotal = entrustListRes.result.total;
         for (let item of entrustListRes.result.list) {
           //console.log(item);
           item.hashs = superLong(item.hash, 6);
@@ -303,6 +301,7 @@
         if (!entrustListRes.success) {
           this.$message({message: '获取用户已成交列表错误:' + JSON.stringify(entrustListRes.data), type: 'error', duration: 3000});
         }
+        this.pageTotal = entrustListRes.result.total;
         for (let item of entrustListRes.result.list) {
           item.hashs = superLong(item.dealHash, 6);
           item.time = moment(getLocalTime(item.createTime)).format('YYYY-MM-DD HH:mm:ss');
@@ -343,7 +342,7 @@
           "endTime": endTime
         };
         let entrustListRes = await this.$dexPost(url, data);
-        console.log(entrustListRes);
+        //console.log(entrustListRes);
         if (!entrustListRes.success) {
           this.$message({
             message: '获取用户历史委托列表错误:' + JSON.stringify(entrustListRes.data),
@@ -351,6 +350,7 @@
             duration: 3000
           });
         }
+        this.pageTotal = entrustListRes.result.total;
         for (let item of entrustListRes.result.list) {
           item.hashs = superLong(item.hash, 6);
           item.time = moment(getLocalTime(item.createTime)).format('YYYY-MM-DD HH:mm:ss');
@@ -362,6 +362,26 @@
           item.turnover = Number(Division(Number(item.totalTurnover), Number(item.total)));
         }
         this.historyEntrustData = entrustListRes.result.list;
+      },
+
+      /**
+       * @disc: 分页功能
+       * @params: val
+       * @date: 2019-12-13 15:44
+       * @author: Wave
+       */
+      pageCurrent(val) {
+        this.pageIndex = val;
+        if (this.orderTab === 'currentEntrust') {
+          this.getEntrustList(this.accountInfo.address, this.pageIndex, this.pageSize);
+        } else if (this.orderTab === 'historyDeal') {
+          const end = new Date();
+          const start = new Date();
+          start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+          this.getHistoricalList(this.accountInfo.address, this.pageIndex, this.pageSize, start.valueOf(), end.valueOf());
+        } else {
+          this.getHistoryEntrustList(this.accountInfo.address, this.pageIndex, this.pageSize, 1, 1);
+        }
       },
 
       /**
@@ -385,6 +405,7 @@
 <style lang="less">
   .order_bar {
     .order_tab {
+      margin-bottom: 80px;
       .el-tabs__header {
         .el-tabs__nav-wrap {
           height: 40px !important;
@@ -439,9 +460,9 @@
         }
       }
     }
-    .page{
+    .page {
       text-align: center;
-      margin: 10px 0 0 0;
+      margin: 20px 0 20px 0;
     }
   }
 </style>

@@ -66,16 +66,17 @@ export async function getBaseAssetInfo(chainId = 2, assetId = 1, address) {
 
 /**
  * 获取地址的余额及nonce根据地址
+ * @param chainId
  * @param assetId
  * @param address
  * @returns {Promise<any>}
  */
-export async function getBalanceOrNonceByAddress(address, assetId = 1) {
-  return await post('/', 'getAccountBalance', [assetId, address])
+export async function getBalanceOrNonceByAddress(address, chainId = 2, assetId = 1) {
+  return await post('/', 'getAccountBalance', [chainId, assetId, address])
     .then((response) => {
-      console.log(response);
-      if (response.hasOwnProperty("result")) {
-        return {success: true, data: {balance: response.result.balance, nonce: response.result.nonce}}
+      //console.log(response);
+      if (response.success) {
+        return {success: true, data: {balance: response.data.balance, nonce: response.data.nonce}}
       } else {
         return {success: false, data: response}
       }
@@ -190,4 +191,67 @@ export async function getContractConstructor(contractCodeHex) {
     .catch((error) => {
       return {success: false, data: error};
     });
+}
+
+/**
+ * @disc: 撤销挂单 inputs outputs
+ * @params: tradingOrderInfo
+ * @params: defaultAsset
+ * @params: fee
+ * @date: 2020-02-07 11:24
+ * @author: Wave
+ */
+export async function revokeCoinData(tradingOrderInfo, coinTrading, defaultAsset) {
+  let fee = 100000;
+  let inputs = [], outputs = [];
+  //首先通过订单信息组装解锁from
+  let orderInput = {
+    address: tradingOrderInfo.address,
+    assetsChainId: coinTrading.baseAssetChainId,
+    assetsId: coinTrading.baseAssetId,
+    amount: tradingOrderInfo.leftAmount,
+    locked: -1,
+    nonce: tradingOrderInfo.nonce
+  };
+  if (tradingOrderInfo.type === 1) {
+    orderInput.assetsChainId = coinTrading.quoteAssetChainId;
+    orderInput.assetsId = coinTrading.quoteAssetId;
+  }
+  inputs.push(orderInput);
+
+  //如果手续费不足，需要添加手续费
+  if (orderInput.assetsChainId !== defaultAsset.assetsChainId || orderInput.assetsId !== defaultAsset.assetsId || orderInput.amount < fee) {
+    //通过获取用户当前余额组装手续费from
+    let balanceInfo = await getBalanceOrNonceByAddress(tradingOrderInfo.address, defaultAsset.assetsChainId, defaultAsset.assetsId);
+    //console.log(balanceInfo);
+    inputs.push({
+      address: tradingOrderInfo.address,
+      assetsChainId: defaultAsset.assetsChainId,
+      assetsId: defaultAsset.assetsId,
+      amount: fee,
+      locked: 0,
+      nonce: balanceInfo.data.nonce
+    });
+  }
+
+  //组装to
+  if (orderInput.assetsChainId !== defaultAsset.assetsChainId || orderInput.assetsId !== defaultAsset.assetsId || orderInput.amount < fee) {
+    outputs.push({
+      address: tradingOrderInfo.address,
+      assetsChainId: orderInput.assetsChainId,
+      assetsId: orderInput.assetsId,
+      amount: orderInput.amount,
+      lockTime: 0
+    });
+  } else {
+    outputs.push({
+      address: tradingOrderInfo.address,
+      assetsChainId: orderInput.assetsChainId,
+      assetsId: orderInput.assetsId,
+      amount: orderInput.amount - fee,
+      lockTime: 0
+    });
+  }
+
+  return {success: true, data: {inputs: inputs, outputs: outputs}};
 }

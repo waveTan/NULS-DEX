@@ -6091,9 +6091,9 @@ nth-check@^1.0.2, nth-check@~1.0.1:
   dependencies:
     boolbase "~1.0.0"
 
-nuls-sdk-js@^2.3.9:
-  version "2.3.9"
-  resolved "https://registry.yarnpkg.com/nuls-sdk-js/-/nuls-sdk-js-2.3.9.tgz#09f3f9a84598c6d72584b0ec920f6eaa6a4269c7"
+nuls-sdk-js@^2.4.1:
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/nuls-sdk-js/-/nuls-sdk-js-2.4.1.tgz#9924ab94f83c8d0fe58b8b8f97151a0bfcc3fe43"
   dependencies:
     acorn "6.0.0"
     axios "^0.18.0"
